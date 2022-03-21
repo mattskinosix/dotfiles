@@ -14,6 +14,8 @@ vim.cmd [[
 
 local use = require('packer').use
 require('packer').startup(function()
+  use { 'renerocksai/telekasten.nvim' }
+  use { 'renerocksai/calendar-vim' }
   use { 'vuciv/vim-bujo' }
   use {
     's1n7ax/nvim-terminal',
@@ -66,16 +68,12 @@ require('packer').startup(function()
   use 'voldikss/vim-browser-search'
   use {'akinsho/flutter-tools.nvim', requires = 'nvim-lua/plenary.nvim'}
   use { "nvim-telescope/telescope-media-files.nvim" }
-  use 'joshdick/onedark.vim' -- Theme inspired by Atom
-  use 'itchyny/lightline.vim' -- Fancier statusline
   -- Add indentation guides even on blank lines
   use 'lukas-reineke/indent-blankline.nvim'
   -- Add git related info in the signs columns and popups
   use { 'lewis6991/gitsigns.nvim', requires = { 'nvim-lua/plenary.nvim' } }
   -- Highlight, edit, and navigate code using a fast incremental parsing library
   use 'nvim-treesitter/nvim-treesitter'
-  use 'SirVer/ultisnips'
-  use 'honza/vim-snippets'
   use 'christoomey/vim-conflicted'
   use { 'rottencandy/vimkubectl' }
   use {
@@ -96,14 +94,11 @@ require('packer').startup(function()
         },
       }
   use 'hrsh7th/cmp-nvim-lsp' -- LSP source for nvim-cmp
-  use 'saadparwaiz1/cmp_luasnip' -- Snippets source for nvim-cmp
-  use 'L3MON4D3/LuaSnip' -- Snippets plugin
   -- Additional textobjects for treesitter
   use 'nvim-treesitter/nvim-treesitter-textobjects'
   use 'neovim/nvim-lspconfig' -- Collection of configurations for built-in LSP client
   use 'ms-jpq/chadtree'
   use 'windwp/nvim-autopairs'
-  use('jose-elias-alvarez/null-ls.nvim')
   use 'kristijanhusak/vim-dadbod'
   use 'kristijanhusak/vim-dadbod-ui'
   use 'kristijanhusak/vim-dadbod-completion'
@@ -112,13 +107,7 @@ require('packer').startup(function()
   use('MunifTanjim/prettier.nvim')
   use { "nvim-telescope/telescope-arecibo.nvim",
         rocks = {"openssl", "lua-http-parser"}}
-  use {
-      "gelguy/wilder.nvim",
-      run = ":UpdateRemotePlugins",
-      config = function()
-        wilder = require "wilder"
-      end,
-  }
+  use {'jeffkreeftmeijer/vim-numbertoggle'}
   use {
       "rcarriga/nvim-notify",
       event = "VimEnter",
@@ -126,10 +115,43 @@ require('packer').startup(function()
         vim.notify = require "notify"
       end,
   }
+  -- Lua
+  use { "RRethy/vim-illuminate" }
+  use { "windwp/windline.nvim" }
+  use {
+    "folke/trouble.nvim",
+    requires = "kyazdani42/nvim-web-devicons",
+    config = function()
+      require("trouble").setup {
+        -- your configuration comes here
+        -- or leave it empty to use the default settings
+        -- refer to the configuration section below
+      }
+    end
+  }
   use 'glepnir/dashboard-nvim'
   use 'airblade/vim-rooter'
 end)
 
+-- ####################################################################################################################################################################################
+--                                                                        WILDLINE
+-- ####################################################################################################################################################################################
+local windline = require('windline')
+require('wlsample.airline_luffy')
+    --- you need to define your status lines here
+
+-- ####################################################################################################################################################################################
+--                                                                        BLANKLINE
+-- ####################################################################################################################################################################################
+vim.opt.list = true
+vim.opt.listchars:append("space:⋅")
+vim.opt.listchars:append("eol:↴")
+
+require("indent_blankline").setup {
+    space_char_blankline = " ",
+    show_current_context = true,
+    show_current_context_start = true,
+}
 -- ####################################################################################################################################################################################
 --                                                                          DBUI
 -- ####################################################################################################################################################################################
@@ -145,25 +167,21 @@ vim.g.dashboard_default_executive = 'telescope'
 -- ####################################################################################################################################################################################
 --                                                                          ROOTER
 -- ####################################################################################################################################################################################
-vim.g.rooter_pattern ={'.git', '.skaffold', '.kubernetes', '.gitlab', '*.sln', 'build/env.sh'}
-
+vim.g.rooter_pattern ={'.git', '.skaffold', '.kubernetes', '.gitlab', '.coveragerc', '.coveragerc'}
+vim.g.rooter_manual_only = 1
 -- ####################################################################################################################################################################################
 --                                                                           LSP
 -- ####################################################################################################################################################################################
 
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').update_capabilities(capabilities)
--- ####################################################################################################################################################################################
---                                                                          LSP SNIPPET
--- ####################################################################################################################################################################################
 
---  luasnip setup
-local luasnip = require 'luasnip'
 -- ####################################################################################################################################################################################
 --                                                                           CMP
 -- ####################################################################################################################################################################################
--- cmdline
-local cmp = require'cmp'
+
+local cmp = require 'cmp'
+-- nvim-cmp setup
 cmp.setup.cmdline(":", {
     sources = {
       { name = "cmdline" },
@@ -177,11 +195,11 @@ cmp.setup.cmdline('/', {
       { name = 'buffer' }
     })
 })
--- nvim-cmp setup
+
 cmp.setup {
   snippet = {
     expand = function(args)
-      require('luasnip').lsp_expand(args.body)
+      vim.fn["UltiSnips#Anon"](args.body)
     end,
   },
   mapping = {
@@ -216,7 +234,7 @@ cmp.setup {
   },
   sources = {
     { name = 'nvim_lsp' },
-    { name = 'luasnip' },
+    { name = 'ultisnips' },
   },
 }
 
@@ -306,23 +324,6 @@ vim.api.nvim_set_keymap('', ',', '<Nop>', { noremap = true, silent = true })
 vim.g.mapleader = ','
 vim.g.maplocalleader = ','
 
---Remap for dealing with word wrap
-vim.api.nvim_set_keymap('n', 'k', "v:count == 0 ? 'gk' : 'k'", { noremap = true, expr = true, silent = true })
-vim.api.nvim_set_keymap('n', 'j', "v:count == 0 ? 'gj' : 'j'", { noremap = true, expr = true, silent = true })
-
--- Highlight on yank
-vim.cmd [[
-  augroup YankHighlight
-    autocmd!
-    autocmd TextYankPost * silent! lua vim.highlight.on_yank()
-  augroup end
-]]
-
---Map blankline
-vim.g.indent_blankline_char = '┊'
-vim.g.indent_blankline_filetype_exclude = { 'help', 'packer' }
-vim.g.indent_blankline_buftype_exclude = { 'terminal', 'nofile' }
-vim.g.indent_blankline_show_trailing_blankline_indent = false
 -- ####################################################################################################################################################################################
 --                                                                           LSP
 -- ####################################################################################################################################################################################
@@ -440,6 +441,29 @@ vim.api.nvim_set_keymap('n', '<leader>fg', [[<cmd>lua require('telescope.builtin
 vim.api.nvim_set_keymap('n', '<leader>so', [[<cmd>lua require('telescope.builtin').tags{ only_current_buffer = true }<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>?', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>ws', [[<Plug>BrowserSeach ]], { noremap = true, silent = true })
+
+vim.api.nvim_set_keymap('n', '<leader>ci', [[<Plug>BujoAddnormal]], { noremap = false, silent = true })
+
+vim.api.nvim_set_keymap('n', '<leader>cc', [[<Plug>BujoChecknormal]], { noremap = false, silent = true })
+
+vim.api.nvim_set_keymap("n", "<leader>xx", "<cmd>Trouble<cr>",
+  {silent = true, noremap = true}
+)
+vim.api.nvim_set_keymap("n", "<leader>xw", "<cmd>Trouble workspace_diagnostics<cr>",
+  {silent = true, noremap = true}
+)
+vim.api.nvim_set_keymap("n", "<leader>xd", "<cmd>Trouble document_diagnostics<cr>",
+  {silent = true, noremap = true}
+)
+vim.api.nvim_set_keymap("n", "<leader>xl", "<cmd>Trouble loclist<cr>",
+  {silent = true, noremap = true}
+)
+vim.api.nvim_set_keymap("n", "<leader>xq", "<cmd>Trouble quickfix<cr>",
+  {silent = true, noremap = true}
+)
+vim.api.nvim_set_keymap("n", "gR", "<cmd>Trouble lsp_references<cr>",
+  {silent = true, noremap = true}
+)
 -- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
 local opts = { noremap=true, silent=true }
@@ -469,16 +493,42 @@ local on_attach = function(client, bufnr)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', 'ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', 'f', '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
+  require 'illuminate'.on_attach(client)
 end
+
+
+
 -- ####################################################################################################################################################################################
 --                                                                           LSP
 -- ####################################################################################################################################################################################
 -- Use a loop to conveniently call 'setup' on multiple servers and
 -- map buffer local keybindings when the language server attaches
+vim.cmd [[autocmd! ColorScheme * highlight NormalFloat guibg=#1f2335]]
+vim.cmd [[autocmd! ColorScheme * highlight FloatBorder guifg=white guibg=#1f2335]]
+
+local border = {
+      {"🭽", "FloatBorder"},
+      {"▔", "FloatBorder"},
+      {"🭾", "FloatBorder"},
+      {"▕", "FloatBorder"},
+      {"🭿", "FloatBorder"},
+      {"▁", "FloatBorder"},
+      {"🭼", "FloatBorder"},
+      {"▏", "FloatBorder"},
+}
+
+-- LSP settings (for overriding per client)
+local handlers =  {
+  ["textDocument/hover"] =  vim.lsp.with(vim.lsp.handlers.hover, {border = border}),
+  ["textDocument/signatureHelp"] =  vim.lsp.with(vim.lsp.handlers.signature_help, {border = border }),
+}
+
+
 local servers = { 'pyright', 'pylsp', 'rust_analyzer', 'tsserver', 'eslint', 'vuels', 'sqlls', 'cssls', 'dockerls', 'yamlls', 'html',  'angularls'}
 for _, lsp in pairs(servers) do
   require('lspconfig')[lsp].setup {
     on_attach = on_attach,
+    handlers=handlers,
     flags = {
       -- This will be the default in neovim 0.7+
       debounce_text_changes = 150,
@@ -499,6 +549,24 @@ require('lspconfig').yamlls.setup {
     },
   }
 }
+-- Do not forget to use the on_attach function
+-- To instead override globally
+local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
+function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
+  opts = opts or {}
+  opts.border = opts.border or border
+  return orig_util_open_floating_preview(contents, syntax, opts, ...)
+end
+-- You will likely want to reduce updatetime which affects CursorHold
+-- note: this setting is global and should be set only once
+vim.cmd [[autocmd! CursorHold,CursorHoldI * lua vim.diagnostic.open_float(nil, {focus=false})]]
+vim.diagnostic.config({
+  virtual_text = false,
+  signs = true,
+  underline = true,
+  update_in_insert = true,
+  severity_sort = true,
+})
 -- ####################################################################################################################################################################################
 --                                                                           FLUTTER
 -- ####################################################################################################################################################################################
@@ -507,26 +575,14 @@ require("flutter-tools").setup{}
 -- ####################################################################################################################################################################################
 --                                                                           Prettier
 -- ####################################################################################################################################################################################
-local null_ls = require("null-ls")
 local prettier = require("prettier")
 
-null_ls.setup({
-  on_attach = function(client, bufnr)
-    if client.resolved_capabilities.document_formatting then
-      vim.cmd("nnoremap <silent><buffer> <Leader>f :lua vim.lsp.buf.formatting()<CR>")
-      -- format on save
-      vim.cmd("autocmd BufWritePost <buffer> lua vim.lsp.buf.formatting()")
-    end
 
-    if client.resolved_capabilities.document_range_formatting then
-      vim.cmd("xnoremap <silent><buffer> <Leader>f :lua vim.lsp.buf.range_formatting({})<CR>")
-    end
-  end,
-})
 
 prettier.setup({
   bin = 'prettier', -- or `prettierd`
   filetypes = {
+    "python",
     "css",
     "graphql",
     "html",
@@ -558,7 +614,7 @@ prettier.setup({
   tab_width = 2,
   trailing_comma = "es5",
   use_tabs = false,
-  vue_indent_script_and_style = false,
+  vue_indent_script_and_style = true,
 })
 
 
@@ -597,10 +653,10 @@ vim.o.shiftwidth=2
 vim.cmd[[set nocompatible]]
 vim.cmd[[xnoremap p pgvy]]
 
-require('wilder').setup({
-     modes= {':', '/', '?'}
-})
 
+-- ####################################################################################################################################################################################
+--                                                                           autosave
+-- ####################################################################################################################################################################################
 
 
 require('autosave').setup(
