@@ -5,7 +5,7 @@ this is my personal neovim configuration, I love this configuration very much an
 In particular, the configuration currently contains the following plugins with packer as packege manager
 
 - dashboar-nvim
-- chadtree
+- nertree lua
 - lsp-config
 - fugitive
 - treesitter
