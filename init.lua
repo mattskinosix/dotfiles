@@ -16,14 +16,23 @@ local use = require('packer').use
 require('packer').startup(function()
   use { 'renerocksai/telekasten.nvim' }
   use { 'renerocksai/calendar-vim' }
-  use { 'vuciv/vim-bujo' }
+  use { 'mfussenegger/nvim-jdtls' }
   use {
-    's1n7ax/nvim-terminal',
-    config = function()
-        vim.o.hidden = true
-        require('nvim-terminal').setup()
-    end,
+    'kyazdani42/nvim-tree.lua',
+    requires = {
+      'kyazdani42/nvim-web-devicons', -- optional, for file icons
+    },
+    tag = 'nightly' -- optional, updated every week. (see issue #1193)
   }
+  use {'akinsho/git-conflict.nvim', config = function()
+    require('git-conflict').setup()
+  end}
+  use {
+    'glacambre/firenvim',
+    run = function() vim.fn['firenvim#install'](0) end 
+  }
+  use { 'iamcco/markdown-preview.nvim', run = 'cd app && yarn install'}
+  use {"akinsho/toggleterm.nvim"}
   use {
     "NTBBloodbath/rest.nvim",
     requires = { "nvim-lua/plenary.nvim" },
@@ -52,6 +61,7 @@ require('packer').startup(function()
       })
     end
   }
+  use { "vim-test/vim-test" }
   use { "ellisonleao/gruvbox.nvim" }
   use 'Pocco81/AutoSave.nvim'
   use 'rbong/vim-flog'
@@ -59,12 +69,12 @@ require('packer').startup(function()
   use 'mg979/vim-visual-multi'
   use 'wbthomason/packer.nvim' -- Package manager
   use 'tpope/vim-fugitive' -- Git commands in nvim
-  use 'tpope/vim-rhubarb' -- Fugitive-companion to interact with github
   use 'tpope/vim-commentary' -- "gc" to comment visual regions/lines
   -- UI to select things (files, grep results, open buffers...)
   use { "nvim-lua/plenary.nvim" }
   use { "nvim-lua/popup.nvim" }
   use { "nvim-telescope/telescope.nvim" }
+  use { "nvim-telescope/telescope-file-browser.nvim" }
   use 'voldikss/vim-browser-search'
   use {'akinsho/flutter-tools.nvim', requires = 'nvim-lua/plenary.nvim'}
   use { "nvim-telescope/telescope-media-files.nvim" }
@@ -73,8 +83,10 @@ require('packer').startup(function()
   -- Add git related info in the signs columns and popups
   use { 'lewis6991/gitsigns.nvim', requires = { 'nvim-lua/plenary.nvim' } }
   -- Highlight, edit, and navigate code using a fast incremental parsing library
-  use 'nvim-treesitter/nvim-treesitter'
   use 'christoomey/vim-conflicted'
+  use({"petertriho/cmp-git", requires = "nvim-lua/plenary.nvim"})
+  use { 'SirVer/ultisnips' }
+  use { 'honza/vim-snippets' }
   use { 'rottencandy/vimkubectl' }
   use {
         "hrsh7th/nvim-cmp",
@@ -82,32 +94,42 @@ require('packer').startup(function()
           "hrsh7th/cmp-buffer",
           "hrsh7th/cmp-nvim-lsp",
           "quangnguyen30192/cmp-nvim-ultisnips",
+          config = function()
+            -- optional call to setup (see customization section)
+          require("cmp_nvim_ultisnips").setup{
+             filetype_source = "treesitter",
+             show_snippets = "all",
+             documentation = function(snippet)
+               return snippet.description
+             end 
+          }
+          end,
           "hrsh7th/cmp-nvim-lua",
           "octaltree/cmp-look",
           "hrsh7th/cmp-path",
-          "hrsh7th/cmp-calc",
           "f3fora/cmp-spell",
           "hrsh7th/cmp-emoji",
           "ray-x/cmp-treesitter",
+          "uga-rosa/cmp-dictionary",
           "hrsh7th/cmp-cmdline",
           "hrsh7th/cmp-nvim-lsp-document-symbol",
         },
       }
   use 'hrsh7th/cmp-nvim-lsp' -- LSP source for nvim-cmp
   -- Additional textobjects for treesitter
+  use 'nvim-treesitter/nvim-treesitter'
   use 'nvim-treesitter/nvim-treesitter-textobjects'
   use 'neovim/nvim-lspconfig' -- Collection of configurations for built-in LSP client
-  use 'ms-jpq/chadtree'
   use 'windwp/nvim-autopairs'
   use 'kristijanhusak/vim-dadbod'
   use 'kristijanhusak/vim-dadbod-ui'
   use 'kristijanhusak/vim-dadbod-completion'
-  use {'akinsho/bufferline.nvim', requires = 'kyazdani42/nvim-web-devicons'}
+  -- using packer.nvim
+  use {'akinsho/bufferline.nvim', tag = "v2.*", requires = 'kyazdani42/nvim-web-devicons'}
   use 'idanarye/vim-merginal'
-  use('MunifTanjim/prettier.nvim')
+  use('prettier/vim-prettier')
   use { "nvim-telescope/telescope-arecibo.nvim",
         rocks = {"openssl", "lua-http-parser"}}
-  use {'jeffkreeftmeijer/vim-numbertoggle'}
   use {
       "rcarriga/nvim-notify",
       event = "VimEnter",
@@ -123,14 +145,11 @@ require('packer').startup(function()
     requires = "kyazdani42/nvim-web-devicons",
     config = function()
       require("trouble").setup {
-        -- your configuration comes here
-        -- or leave it empty to use the default settings
-        -- refer to the configuration section below
+
       }
     end
   }
   use 'glepnir/dashboard-nvim'
-  use 'airblade/vim-rooter'
 end)
 
 -- ####################################################################################################################################################################################
@@ -165,11 +184,6 @@ vim.cmd [[ autocmd FileType sql,mysql,plsql lua require('cmp').setup.buffer({ so
 vim.g.dashboard_default_executive = 'telescope'
 
 -- ####################################################################################################################################################################################
---                                                                          ROOTER
--- ####################################################################################################################################################################################
-vim.g.rooter_pattern ={'.git', '.skaffold', '.kubernetes', '.gitlab', '.coveragerc', '.coveragerc'}
-vim.g.rooter_manual_only = 1
--- ####################################################################################################################################################################################
 --                                                                           LSP
 -- ####################################################################################################################################################################################
 
@@ -177,24 +191,52 @@ local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').update_capabilities(capabilities)
 
 -- ####################################################################################################################################################################################
+--                                                                           nerdtree
+-- ####################################################################################################################################################################################
+
+vim.g.loaded = 1
+vim.g.loaded_netrwPlugin = 1
+require("nvim-tree").setup({
+  sort_by = "case_sensitive",
+  view = {
+    adaptive_size = true,
+    mappings = {
+      list = {
+        { key = "u", action = "dir_up" },
+      },
+    },
+  },
+  renderer = {
+    group_empty = true,
+  },
+  filters = {
+    dotfiles = true,
+  },
+})
+
+-- ####################################################################################################################################################################################
 --                                                                           CMP
 -- ####################################################################################################################################################################################
 
 local cmp = require 'cmp'
 -- nvim-cmp setup
-cmp.setup.cmdline(":", {
-    sources = {
-      { name = "cmdline" },
-    },
+cmp.setup.cmdline(':', {
+  mapping = cmp.mapping.preset.cmdline(),
+  sources = cmp.config.sources({
+    { name = 'path' }
+  }, {
+    { name = 'cmdline' }
+  })
 })
+
 -- lsp_document_symbols
-cmp.setup.cmdline('/', {
-    sources = cmp.config.sources({
-      { name = 'nvim_lsp_document_symbol' }
-    }, {
+  cmp.setup.cmdline('/', {
+    mapping = cmp.mapping.preset.cmdline(),
+    sources = {
       { name = 'buffer' }
-    })
-})
+    }
+  })
+local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
 
 cmp.setup {
   snippet = {
@@ -203,73 +245,37 @@ cmp.setup {
     end,
   },
   mapping = {
-    ['<C-p>'] = cmp.mapping.select_prev_item(),
-    ['<C-n>'] = cmp.mapping.select_next_item(),
-    ['<C-d>'] = cmp.mapping.scroll_docs(-4),
-    ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    ['<C-Space>'] = cmp.mapping.complete(),
-    ['<C-e>'] = cmp.mapping.close(),
-    ['<CR>'] = cmp.mapping.confirm {
-      behavior = cmp.ConfirmBehavior.Replace,
-      select = true,
-    },
-    ['<Tab>'] = function(fallback)
-      if cmp.visible() then
-        cmp.select_next_item()
-      elseif luasnip.expand_or_jumpable() then
-        luasnip.expand_or_jump()
-      else
-        fallback()
-      end
-    end,
-    ['<S-Tab>'] = function(fallback)
-      if cmp.visible() then
-        cmp.select_prev_item()
-      elseif luasnip.jumpable(-1) then
-        luasnip.jump(-1)
-      else
-        fallback()
-      end
-    end,
+      ['<C-Tab>'] = cmp.mapping.select_prev_item(),
+      ['<Tab>'] = cmp.mapping.select_next_item(),
+      ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+      ['<C-f>'] = cmp.mapping.scroll_docs(4),
+      ['<C-Space>'] = cmp.mapping.complete(),
+      ['<C-e>'] = cmp.mapping.abort(),
+      ['<CR>'] = cmp.mapping.confirm({ select = true }),
   },
-  sources = {
-    { name = 'nvim_lsp' },
-    { name = 'ultisnips' },
-  },
+  sources = cmp.config.sources({
+      { name = 'nvim_lsp' },
+      { name = 'ultisnips' }, -- For ultisnips users.
+      { name = 'emoji' },
+      { name = 'path' },
+    }
+  )
 }
 
+cmp.setup.filetype('gitcommit', {
+    sources = cmp.config.sources({
+      { name = 'cmp_git' }, -- You can specify the `cmp_git` source if you were installed it.
+    })
+  })
 
 -- ####################################################################################################################################################################################
---                                                                           NPAIRS
+--                                                                          NPAIRS
 -- ####################################################################################################################################################################################
 
-local Rule = require('nvim-autopairs.rule')
 local npairs = require('nvim-autopairs')
-
-
--- you can use some built-in conditions
-
-local cond = require('nvim-autopairs.conds')
 
 npairs.setup({
     check_ts = true,
-    ts_config = {
-        lua = {'string'},-- it will not add a pair on that treesitter node
-        javascript = {'template_string'},
-        java = false,-- don't check treesitter on java
-    }
-})
-
-local ts_conds = require('nvim-autopairs.ts-conds')
-
-
-
--- press % => %% only while inside a comment or string
-npairs.add_rules({
-  Rule("%", "%", "lua")
-    :with_pair(ts_conds.is_ts_node({'string','comment'})),
-  Rule("$", "$", "lua")
-    :with_pair(ts_conds.is_not_ts_node({'function'}))
 })
 
 
@@ -308,12 +314,7 @@ vim.cmd [[colorscheme gruvbox]]
 --                                                                           STATUSBAR
 -- ####################################################################################################################################################################################
 
---Set statusbar
-vim.g.lightline = {
-  colorscheme = 'gruvbox',
-  active = { left = { { 'mode', 'paste' }, { 'gitbranch', 'readonly', 'filename', 'modified' } } },
-  component_function = { gitbranch = 'fugitive#head' },
-}
+
 -- ####################################################################################################################################################################################
 --                                                                           LEADER
 -- ####################################################################################################################################################################################
@@ -323,6 +324,12 @@ vim.g.lightline = {
 vim.api.nvim_set_keymap('', ',', '<Nop>', { noremap = true, silent = true })
 vim.g.mapleader = ','
 vim.g.maplocalleader = ','
+vim.g.netrw_banner=1
+vim.g.netrw_liststyle=3
+vim.g.netrw_altv=1
+vim.g.netrw_winsize=25
+vim.g.netrw_browse_split = 4
+vim.g.netrw_localcopydircmd='cp -r'
 
 -- ####################################################################################################################################################################################
 --                                                                           LSP
@@ -342,23 +349,35 @@ require('gitsigns').setup {
 --                                                                           TELESCOPE
 -- ####################################################################################################################################################################################
 
--- Telescope
+-- To get telescope-file-browser loaded and working with telescope,
+-- you need to call load_extension, somewhere after setup function:
+require("telescope").load_extension('file_browser')
 require('telescope').load_extension('arecibo')
 require('telescope').load_extension('media_files')
 require('telescope').setup {
    extensions = {
     arecibo = {
       selected_engine   = 'duckduckgo',
-      url_open_command = 'xdg-open',
-      show_http_headers = false,
-      show_domain_icons = true,
     },
     media_files = {
       -- filetypes whitelist
       -- defaults to {"png", "jpg", "mp4", "webm", "pdf"}
       filetypes = {"png", "webp", "jpg", "jpeg"},
       find_cmd = "rg" -- find command (defaults to `fd`)
-    }
+    },
+    file_browser = {
+      theme = "ivy",
+      -- disables netrw and use telescope-file-browser in its place
+      hijack_netrw = true,
+      mappings = {
+        ["i"] = {
+          -- your custom insert mode mappings
+        },
+        ["n"] = {
+          -- your custom normal mode mappings
+        },
+      },
+    },
   }
 }
 
@@ -426,12 +445,21 @@ require('nvim-treesitter.configs').setup {
 -- ####################################################################################################################################################################################
 
 --Add leader shortcuts
-vim.api.nvim_set_keymap('n', '<leader>b', [[<Plug>Merginal]], { noremap = false, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>1', [[<cmd>ToggleTerm 1<CR>]], { noremap = false, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>2', [[<cmd>ToggleTerm 2<CR>]], { noremap = false, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>3', [[<cmd>ToggleTerm 3<CR>]], { noremap = false, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>4', [[<cmd>ToggleTerm 4<CR>]], { noremap = false, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>5', [[<cmd>ToggleTerm 5<CR>]], { noremap = false, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>6', [[<cmd>ToggleTerm 6<CR>]], { noremap = false, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>7', [[<cmd>ToggleTerm 7<CR>]], { noremap = false, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>8', [[<cmd>ToggleTerm 8<CR>]], { noremap = false, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>9', [[<cmd>ToggleTerm 9<CR>]], { noremap = false, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>m', [[<cmd>Merginal<CR>]], { noremap = false, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>r', [[<Plug>RestNvim]], { noremap = false, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>d', [[<cmd>CHADopen<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>d', [[:NvimTreeOpen<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>g', [[<cmd>Git<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>w', [[<cmd>w<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>fb', [[<cmd>lua require('telescope.builtin').buffers()<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>sb', [[<cmd>lua require('telescope.builtin').buffers()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>ff', [[<cmd>lua require('telescope.builtin').find_files({previewer = false})<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>fbg', [[<cmd>lua require('telescope.builtin').current_buffer_fuzzy_find()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>sh', [[<cmd>lua require('telescope.builtin').help_tags()<CR>]], { noremap = true, silent = true })
@@ -440,30 +468,37 @@ vim.api.nvim_set_keymap('n', '<leader>sd', [[<cmd>lua require('telescope.builtin
 vim.api.nvim_set_keymap('n', '<leader>fg', [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>so', [[<cmd>lua require('telescope.builtin').tags{ only_current_buffer = true }<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>?', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>ws', [[<Plug>BrowserSeach ]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>ws', [[<cmd>lua require("telescope").extensions.arecibo.websearch()<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>fb', [[<cmd>Telescope file_browser<CR>]], { noremap = true, silent = true })
 
 vim.api.nvim_set_keymap('n', '<leader>ci', [[<Plug>BujoAddnormal]], { noremap = false, silent = true })
 
 vim.api.nvim_set_keymap('n', '<leader>cc', [[<Plug>BujoChecknormal]], { noremap = false, silent = true })
 
-vim.api.nvim_set_keymap("n", "<leader>xx", "<cmd>Trouble<cr>",
+vim.api.nvim_set_keymap("n", "<leader>t", "<cmd>Trouble<cr>",
   {silent = true, noremap = true}
 )
-vim.api.nvim_set_keymap("n", "<leader>xw", "<cmd>Trouble workspace_diagnostics<cr>",
+vim.api.nvim_set_keymap("n", "<leader>tw", "<cmd>Trouble workspace_diagnostics<cr>",
   {silent = true, noremap = true}
 )
-vim.api.nvim_set_keymap("n", "<leader>xd", "<cmd>Trouble document_diagnostics<cr>",
+vim.api.nvim_set_keymap("n", "<leader>td", "<cmd>Trouble document_diagnostics<cr>",
   {silent = true, noremap = true}
 )
 vim.api.nvim_set_keymap("n", "<leader>xl", "<cmd>Trouble loclist<cr>",
   {silent = true, noremap = true}
 )
-vim.api.nvim_set_keymap("n", "<leader>xq", "<cmd>Trouble quickfix<cr>",
+vim.api.nvim_set_keymap("n", "<leader>qf", "<cmd>Trouble quickfix<cr>",
   {silent = true, noremap = true}
 )
 vim.api.nvim_set_keymap("n", "gR", "<cmd>Trouble lsp_references<cr>",
   {silent = true, noremap = true}
 )
+
+vim.api.nvim_set_keymap('n', '<leader>tn', [[<Plug>TestNearest ]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>tf', [[<Plug>TestFile ]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>ts', [[<Plug>TestSuite ]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>tl', [[<Plug>TestLast ]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>tv', [[<Plug>TestVisit ]], { noremap = true, silent = true })
 -- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
 local opts = { noremap=true, silent=true }
@@ -492,7 +527,7 @@ local on_attach = function(client, bufnr)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', 'rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', 'ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'f', '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'f', '<cmd>lua vim.lsp.buf.format { async = true}<CR>', opts)
   require 'illuminate'.on_attach(client)
 end
 
@@ -524,31 +559,24 @@ local handlers =  {
 }
 
 
-local servers = { 'pyright', 'pylsp', 'rust_analyzer', 'tsserver', 'eslint', 'vuels', 'sqlls', 'cssls', 'dockerls', 'yamlls', 'html',  'angularls'}
+local servers = { 'pyright', 'pylsp', 'rust_analyzer', 'tsserver', 'eslint', 'vuels', 'sqlls', 'cssls', 'dockerls', 'yamlls', 'html',  'angularls', 'svelte'}
 for _, lsp in pairs(servers) do
   require('lspconfig')[lsp].setup {
     on_attach = on_attach,
     handlers=handlers,
-    flags = {
-      -- This will be the default in neovim 0.7+
-      debounce_text_changes = 150,
+    settings = {
+      yaml = {
+        -- other settings. note this overrides the lspconfig defaults.
+        schemas = {
+          ["https://raw.githubusercontent.com/instrumenta/kubernetes-json-schema/master/v1.21.0-standalone-strict/all.json"] = "/*.yaml",
+          ["https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs/content/en/schemas/v2beta20.json"] = "/*skaffold.yaml",
+          -- other schemas
+        },
+      },
     }
   }
 end
 
-require('lspconfig').yamlls.setup {
- -- other configuration for setup {}
-  settings = {
-    yaml = {
-  -- other settings. note this overrides the lspconfig defaults.
-      schemas = {
-        ["https://raw.githubusercontent.com/instrumenta/kubernetes-json-schema/master/v1.18.0-standalone-strict/all.json"] = "/*.yaml",
-        ["https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs/content/en/schemas/v2beta20.json"] = "/*skaffold.yaml",
-        -- other schemas
-      },
-    },
-  }
-}
 -- Do not forget to use the on_attach function
 -- To instead override globally
 local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
@@ -559,7 +587,7 @@ function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
 end
 -- You will likely want to reduce updatetime which affects CursorHold
 -- note: this setting is global and should be set only once
-vim.cmd [[autocmd! CursorHold,CursorHoldI * lua vim.diagnostic.open_float(nil, {focus=false})]]
+vim.cmd [[autocmd! CursorHold,CursorHoldI * lua vim.diagnostic.open_float()]]
 vim.diagnostic.config({
   virtual_text = false,
   signs = true,
@@ -575,48 +603,6 @@ require("flutter-tools").setup{}
 -- ####################################################################################################################################################################################
 --                                                                           Prettier
 -- ####################################################################################################################################################################################
-local prettier = require("prettier")
-
-
-
-prettier.setup({
-  bin = 'prettier', -- or `prettierd`
-  filetypes = {
-    "python",
-    "css",
-    "graphql",
-    "html",
-    "javascript",
-    "javascriptreact",
-    "json",
-    "less",
-    "markdown",
-    "scss",
-    "typescript",
-    "typescriptreact",
-    "yaml",
-    "vue"
-  },
-
-  -- prettier format options (you can use config files too. ex: `.prettierrc`)
-  arrow_parens = "always",
-  bracket_spacing = true,
-  embedded_language_formatting = "auto",
-  end_of_line = "lf",
-  html_whitespace_sensitivity = "css",
-  jsx_bracket_same_line = false,
-  jsx_single_quote = false,
-  print_width = 80,
-  prose_wrap = "preserve",
-  quote_props = "as-needed",
-  semi = true,
-  single_quote = false,
-  tab_width = 2,
-  trailing_comma = "es5",
-  use_tabs = false,
-  vue_indent_script_and_style = true,
-})
-
 
 -- ####################################################################################################################################################################################
 --                                                                           bufferline
@@ -631,11 +617,14 @@ require("bufferline").setup{
     tab_size = 18,
     show_buffer_icons = true,
     custom_filter = function(buf_number)
-        if vim.fn.bufname(buf_number) ~= "Merginal" and vim.fn.bufname(buf_number) ~= "index" then
+        if string.match(vim.fn.bufname(buf_number), "fish") or
+           string.match(vim.fn.bufname(buf_number), "git") or
+           string.match(vim.fn.bufname(buf_number), "Merginal") then
+          return false
+        else
           return true
         end
     end,
-    offsets = {{filetype = "CHADTree", text = "File Explorer" },{filetype = "fugitive", text = "Git" },{filetype = "fish", text = "terminal" }},
     sort_by =  'directory'
   }
 }
@@ -651,6 +640,7 @@ vim.o.tabstop=2
 vim.o.softtabstop=2
 vim.o.shiftwidth=2
 vim.cmd[[set nocompatible]]
+vim.cmd[[set number]]
 vim.cmd[[xnoremap p pgvy]]
 
 
@@ -675,3 +665,18 @@ require('autosave').setup(
         clean_command_line_interval = 0
     }
 )
+
+
+require("toggleterm").setup{direction = "float"}
+function _G.set_terminal_keymaps()
+  local opts = {noremap = true}
+  vim.api.nvim_buf_set_keymap(0, 't', '<esc>', [[<C-\><C-n>]], opts)
+  vim.api.nvim_buf_set_keymap(0, 't', 'jk', [[<C-\><C-n>]], opts)
+  vim.api.nvim_buf_set_keymap(0, 't', '<C-h>', [[<C-\><C-n><C-W>h]], opts)
+  vim.api.nvim_buf_set_keymap(0, 't', '<C-j>', [[<C-\><C-n><C-W>j]], opts)
+  vim.api.nvim_buf_set_keymap(0, 't', '<C-k>', [[<C-\><C-n><C-W>k]], opts)
+  vim.api.nvim_buf_set_keymap(0, 't', '<C-l>', [[<C-\><C-n><C-W>l]], opts)
+end
+
+-- if you only want these mappings for toggle term use term://*toggleterm#* instead
+vim.cmd('autocmd! TermOpen term://* lua set_terminal_keymaps()')
