@@ -14,9 +14,17 @@ vim.cmd [[
 
 local use = require('packer').use
 require('packer').startup(function()
+  use { 'knubie/vim-kitty-navigator' }
+  use { 'mfussenegger/nvim-dap' }
+  use { 'Pocco81/dap-buddy.nvim' }
   use { 'renerocksai/telekasten.nvim' }
   use { 'renerocksai/calendar-vim' }
   use { 'mfussenegger/nvim-jdtls' }
+  use { 
+    "williamboman/mason-lspconfig.nvim",
+    "williamboman/mason.nvim" 
+  }
+
   use {
     'kyazdani42/nvim-tree.lua',
     requires = {
@@ -24,15 +32,12 @@ require('packer').startup(function()
     },
     tag = 'nightly' -- optional, updated every week. (see issue #1193)
   }
-  use {'akinsho/git-conflict.nvim', config = function()
-    require('git-conflict').setup()
-  end}
   use {
     'glacambre/firenvim',
     run = function() vim.fn['firenvim#install'](0) end 
   }
   use { 'iamcco/markdown-preview.nvim', run = 'cd app && yarn install'}
-  use {"akinsho/toggleterm.nvim"}
+  use {"akinsho/toggleterm.nvim", tag = '*'}
   use {
     "NTBBloodbath/rest.nvim",
     requires = { "nvim-lua/plenary.nvim" },
@@ -63,10 +68,22 @@ require('packer').startup(function()
   }
   use { "vim-test/vim-test" }
   use { "ellisonleao/gruvbox.nvim" }
-  use 'Pocco81/AutoSave.nvim'
+  use {
+    "Pocco81/auto-save.nvim",
+    config = function()
+         require("auto-save").setup {
+            -- your config goes here
+            -- or just leave it empty :)
+         }
+    end,
+}
   use 'rbong/vim-flog'
   use { 'tpope/vim-surround' }
   use 'mg979/vim-visual-multi'
+  use {'nvim-orgmode/orgmode', config = function()
+          require('orgmode').setup_ts_grammar(){}
+  end
+  }
   use 'wbthomason/packer.nvim' -- Package manager
   use 'tpope/vim-fugitive' -- Git commands in nvim
   use 'tpope/vim-commentary' -- "gc" to comment visual regions/lines
@@ -83,11 +100,9 @@ require('packer').startup(function()
   -- Add git related info in the signs columns and popups
   use { 'lewis6991/gitsigns.nvim', requires = { 'nvim-lua/plenary.nvim' } }
   -- Highlight, edit, and navigate code using a fast incremental parsing library
-  use 'christoomey/vim-conflicted'
   use({"petertriho/cmp-git", requires = "nvim-lua/plenary.nvim"})
   use { 'SirVer/ultisnips' }
   use { 'honza/vim-snippets' }
-  use { 'rottencandy/vimkubectl' }
   use {
         "hrsh7th/nvim-cmp",
         requires = {
@@ -121,15 +136,12 @@ require('packer').startup(function()
   use 'nvim-treesitter/nvim-treesitter-textobjects'
   use 'neovim/nvim-lspconfig' -- Collection of configurations for built-in LSP client
   use 'windwp/nvim-autopairs'
-  use 'kristijanhusak/vim-dadbod'
+  use 'tpope/vim-dadbod'
   use 'kristijanhusak/vim-dadbod-ui'
   use 'kristijanhusak/vim-dadbod-completion'
   -- using packer.nvim
   use {'akinsho/bufferline.nvim', tag = "v2.*", requires = 'kyazdani42/nvim-web-devicons'}
-  use 'idanarye/vim-merginal'
   use('prettier/vim-prettier')
-  use { "nvim-telescope/telescope-arecibo.nvim",
-        rocks = {"openssl", "lua-http-parser"}}
   use {
       "rcarriga/nvim-notify",
       event = "VimEnter",
@@ -145,11 +157,55 @@ require('packer').startup(function()
     requires = "kyazdani42/nvim-web-devicons",
     config = function()
       require("trouble").setup {
+        position = "bottom", -- position of the list can be: bottom, top, left, right
+        height = 10, -- height of the trouble list when position is top or bottom
+        width = 50, -- width of the list when position is left or right
+        icons = true, -- use devicons for filenames
+        mode = "document_diagnostics", -- "workspace_diagnostics", "document_diagnostics", "quickfix", "lsp_references", "loclist"
+        fold_open = "", -- icon used for open folds
+        fold_closed = "", -- icon used for closed folds
+        group = true, -- group results by file
+        padding = true, -- add an extra new line on top of the list
+        action_keys = { -- key mappings for actions in the trouble list
+          -- map to {} to remove a mapping, for example:
+          -- close = {},
+          close = "q", -- close the list
+          cancel = "<esc>", -- cancel the preview and get back to your last window / buffer / cursor
+          refresh = "r", -- manually refresh
+          jump = {"<cr>", "<tab>"}, -- jump to the diagnostic or open / close folds
+          open_split = { "<c-x>" }, -- open buffer in new split
+          open_vsplit = { "<c-v>" }, -- open buffer in new vsplit
+          open_tab = { "<c-t>" }, -- open buffer in new tab
+          jump_close = {"o"}, -- jump to the diagnostic and close the listA
+          toggle_mode = "m", -- toggle between "workspace" and "document" diagnostics mode
+          toggle_preview = "P", -- toggle auto_preview
+          hover = "K", -- opens a small popup with the full multiline message
+          preview = "p", -- preview the diagnostic location
+          close_folds = {"zM", "zm"}, -- close all folds
+          open_folds = {"zR", "zr"}, -- open all folds
+          toggle_fold = {"zA", "za"}, -- toggle fold of current file
+          previous = "k", -- previous item
+          next = "j" -- next item
+        },
+        auto_open = false, -- automatically open the list when you have diagnostics
+        auto_close = false, -- automatically close the list when you have no diagnostics
+        auto_preview = false, -- automatically preview the location of the diagnostic. <esc> to close preview and go back to last window
+        auto_fold = false, -- automatically fold a file trouble list at creation
+        auto_jump = {"lsp_definitions"}, -- for the given modes, automatically jump if there is only a single result
+        signs = {
+          -- icons / text used for a diagnostic
+          error = "",
+          warning = "",
+          hint = "",
+          information = "",
+          other = "﫠"
+        },
+        use_diagnostic_signs = false
 
       }
     end
   }
-  use 'glepnir/dashboard-nvim'
+  use {'glepnir/dashboard-nvim'}
 end)
 
 -- ####################################################################################################################################################################################
@@ -158,6 +214,55 @@ end)
 local windline = require('windline')
 require('wlsample.airline_luffy')
     --- you need to define your status lines here
+
+-- ####################################################################################################################################################################################
+--                                                                        VIMSPECTOR
+-- ####################################################################################################################################################################################
+
+require("mason").setup()
+require("mason-lspconfig").setup()
+
+
+local dap = require('dap')
+
+dap.adapters.python = {
+  type = 'executable';
+  command = 'python';
+  args = { '-m', 'debugpy.adapter' };
+}
+
+dap.configurations.python = {
+  {
+    -- The first three options are required by nvim-dap
+    type = 'python'; -- the type here established the link to the adapter definition: `dap.adapters.python`
+    request = 'launch';
+    name = "Launch file";
+
+    -- Options below are for debugpy, see https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings for supported options
+
+    program = "${workspaceFolder}/${file}"; -- This configuration will launch the current file if used.
+    pythonPath = function()
+      -- debugpy supports launching an application with a different interpreter then the one used to launch debugpy itself.
+      -- The code below looks for a `venv` or `.venv` folder in the current directly and uses the python within.
+      -- You could adapt this - to for example use the `VIRTUAL_ENV` environment variable.
+      local cwd = vim.fn.getcwd()
+      if vim.fn.executable(cwd .. '/venv/bin/python') == 1 then
+        return cwd .. '/venv/bin/python'
+      elseif vim.fn.executable(cwd .. '/.venv/bin/python') == 1 then
+        return cwd .. '/.venv/bin/python'
+      else
+        return 'python'
+      end
+    end;
+  },
+}
+
+
+
+
+
+
+
 
 -- ####################################################################################################################################################################################
 --                                                                        BLANKLINE
@@ -171,11 +276,31 @@ require("indent_blankline").setup {
     show_current_context = true,
     show_current_context_start = true,
 }
+
+-- ####################################################################################################################################################################################
+--                                                                          ORGMODE
+-- ####################################################################################################################################################################################
+-- Tree-sitter configuration
+require'nvim-treesitter.configs'.setup {
+  -- If TS highlights are not enabled at all, or disabled via `disable` prop, highlighting will fallback to default Vim syntax highlighting
+  highlight = {
+    enable = true,
+    additional_vim_regex_highlighting = {'org'}, -- Required for spellcheck, some LaTex highlights and code block highlights that do not have ts grammar
+  },
+  ensure_installed = {'org'}, -- Or run :TSUpdate org
+}
+
+require('orgmode').setup({
+  org_agenda_files = {'~/org/*'},
+  org_default_notes_file = '~/org/refile.org',
+})
+
 -- ####################################################################################################################################################################################
 --                                                                          DBUI
 -- ####################################################################################################################################################################################
 vim.g.dev= 'postgres://postgres:password@localhost:10000/postgres'
 vim.cmd [[ autocmd FileType sql,mysql,plsql lua require('cmp').setup.buffer({ sources = {{ name = 'vim-dadbod-completion' }} }) ]]
+
 
 -- ####################################################################################################################################################################################
 --                                                                          TELESCOPE
@@ -188,7 +313,7 @@ vim.g.dashboard_default_executive = 'telescope'
 -- ####################################################################################################################################################################################
 
 local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities = require('cmp_nvim_lsp').update_capabilities(capabilities)
+capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
 -- ####################################################################################################################################################################################
 --                                                                           nerdtree
@@ -199,18 +324,11 @@ vim.g.loaded_netrwPlugin = 1
 require("nvim-tree").setup({
   sort_by = "case_sensitive",
   view = {
-    adaptive_size = true,
     mappings = {
       list = {
         { key = "u", action = "dir_up" },
       },
     },
-  },
-  renderer = {
-    group_empty = true,
-  },
-  filters = {
-    dotfiles = true,
   },
 })
 
@@ -245,19 +363,21 @@ cmp.setup {
     end,
   },
   mapping = {
-      ['<C-Tab>'] = cmp.mapping.select_prev_item(),
-      ['<Tab>'] = cmp.mapping.select_next_item(),
-      ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-      ['<C-f>'] = cmp.mapping.scroll_docs(4),
+      ['<Up>'] = cmp.mapping.select_prev_item(),
+      ['<Down>'] = cmp.mapping.select_next_item(),
+      ['<C-Up>'] = cmp.mapping.scroll_docs(-4),
+      ['<C-Down>'] = cmp.mapping.scroll_docs(4),
       ['<C-Space>'] = cmp.mapping.complete(),
       ['<C-e>'] = cmp.mapping.abort(),
       ['<CR>'] = cmp.mapping.confirm({ select = true }),
   },
   sources = cmp.config.sources({
+      { name = 'nvim-jdtls' },
       { name = 'nvim_lsp' },
       { name = 'ultisnips' }, -- For ultisnips users.
       { name = 'emoji' },
       { name = 'path' },
+      { name = 'orgmode'}
     }
   )
 }
@@ -302,10 +422,6 @@ vim.opt.undofile = true
 vim.o.ignorecase = true
 vim.o.smartcase = true
 
---Decrease update time
-vim.o.updatetime = 250
-vim.wo.signcolumn = 'yes'
-
 --Set colorscheme (order is important here)
 vim.o.termguicolors = true
 vim.g.onedark_terminal_italics = 2
@@ -321,7 +437,6 @@ vim.cmd [[colorscheme gruvbox]]
 
 
 --Remap space as leader key
-vim.api.nvim_set_keymap('', ',', '<Nop>', { noremap = true, silent = true })
 vim.g.mapleader = ','
 vim.g.maplocalleader = ','
 vim.g.netrw_banner=1
@@ -352,13 +467,16 @@ require('gitsigns').setup {
 -- To get telescope-file-browser loaded and working with telescope,
 -- you need to call load_extension, somewhere after setup function:
 require("telescope").load_extension('file_browser')
-require('telescope').load_extension('arecibo')
 require('telescope').load_extension('media_files')
 require('telescope').setup {
-   extensions = {
-    arecibo = {
-      selected_engine   = 'duckduckgo',
+  pickers = {
+    live_grep = {
+      additional_args = function(opts)
+        return {"--hidden"}
+      end
     },
+  },
+  extensions = {
     media_files = {
       -- filetypes whitelist
       -- defaults to {"png", "jpg", "mp4", "webm", "pdf"}
@@ -445,6 +563,9 @@ require('nvim-treesitter.configs').setup {
 -- ####################################################################################################################################################################################
 
 --Add leader shortcuts
+
+vim.api.nvim_set_keymap('v', '<C-c>', [["+y]], { noremap = false, silent = true })
+vim.api.nvim_set_keymap('v', '<leader>p', [["+p]], { noremap = false, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>1', [[<cmd>ToggleTerm 1<CR>]], { noremap = false, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>2', [[<cmd>ToggleTerm 2<CR>]], { noremap = false, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>3', [[<cmd>ToggleTerm 3<CR>]], { noremap = false, silent = true })
@@ -460,12 +581,12 @@ vim.api.nvim_set_keymap('n', '<leader>d', [[:NvimTreeOpen<CR>]], { noremap = tru
 vim.api.nvim_set_keymap('n', '<leader>g', [[<cmd>Git<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>w', [[<cmd>w<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>sb', [[<cmd>lua require('telescope.builtin').buffers()<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>ff', [[<cmd>lua require('telescope.builtin').find_files({previewer = false})<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>ff', [[<cmd>lua require('telescope.builtin').find_files()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>fbg', [[<cmd>lua require('telescope.builtin').current_buffer_fuzzy_find()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>sh', [[<cmd>lua require('telescope.builtin').help_tags()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>ft', [[<cmd>lua require('telescope.builtin').tags()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>sd', [[<cmd>lua require('telescope.builtin').grep_string()<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>fg', [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>fg', [[<cmd>lua require('telescope.builtin').live_grep({hidden = true})<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>so', [[<cmd>lua require('telescope.builtin').tags{ only_current_buffer = true }<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>?', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>ws', [[<cmd>lua require("telescope").extensions.arecibo.websearch()<CR>]], { noremap = true, silent = true })
@@ -494,11 +615,11 @@ vim.api.nvim_set_keymap("n", "gR", "<cmd>Trouble lsp_references<cr>",
   {silent = true, noremap = true}
 )
 
-vim.api.nvim_set_keymap('n', '<leader>tn', [[<Plug>TestNearest ]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>tf', [[<Plug>TestFile ]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>ts', [[<Plug>TestSuite ]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>tl', [[<Plug>TestLast ]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>tv', [[<Plug>TestVisit ]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>tn', [[<cmd>TestNearest <cr>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>tf', [[<cmd>TestFile <cr>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>ts', [[<cmd>TestSuite <cr>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>tl', [[<cmd>TestLast <cr>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>tv', [[<cmd>TestVisit <cr>]], { noremap = true, silent = true })
 -- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
 local opts = { noremap=true, silent=true }
@@ -557,26 +678,22 @@ local handlers =  {
   ["textDocument/hover"] =  vim.lsp.with(vim.lsp.handlers.hover, {border = border}),
   ["textDocument/signatureHelp"] =  vim.lsp.with(vim.lsp.handlers.signature_help, {border = border }),
 }
-
-
-local servers = { 'pyright', 'pylsp', 'rust_analyzer', 'tsserver', 'eslint', 'vuels', 'sqlls', 'cssls', 'dockerls', 'yamlls', 'html',  'angularls', 'svelte'}
+local lspconfig = require('lspconfig')
+local servers = { 'pyright', 'pylsp', 'rust_analyzer', 'tsserver', 'vuels', 'cssls', 'dockerls', 'yamlls', 'html',  'angularls', 'svelte', 'denols'}
 for _, lsp in pairs(servers) do
-  require('lspconfig')[lsp].setup {
+  lspconfig[lsp].setup {
     on_attach = on_attach,
     handlers=handlers,
-    settings = {
-      yaml = {
-        -- other settings. note this overrides the lspconfig defaults.
-        schemas = {
-          ["https://raw.githubusercontent.com/instrumenta/kubernetes-json-schema/master/v1.21.0-standalone-strict/all.json"] = "/*.yaml",
-          ["https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs/content/en/schemas/v2beta20.json"] = "/*skaffold.yaml",
-          -- other schemas
-        },
-      },
-    }
+    single_file_support = true,
   }
 end
+lspconfig.eslint.setup({
+  filetypes = { "javascript", "javascriptreact", "javascript.jsx", "typescript", "typescriptreact", "typescript.tsx", "vue", "svelte", "astro" },
+})
 
+vim.g.markdown_fenced_languages = {
+  "ts=typescript"
+}
 -- Do not forget to use the on_attach function
 -- To instead override globally
 local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
@@ -590,9 +707,8 @@ end
 vim.cmd [[autocmd! CursorHold,CursorHoldI * lua vim.diagnostic.open_float()]]
 vim.diagnostic.config({
   virtual_text = false,
-  signs = true,
+  signs = true ,
   underline = true,
-  update_in_insert = true,
   severity_sort = true,
 })
 -- ####################################################################################################################################################################################
@@ -639,6 +755,8 @@ vim.cmd[[set expandtab]]
 vim.o.tabstop=2
 vim.o.softtabstop=2
 vim.o.shiftwidth=2
+
+vim.cmd[[set tabpagemax=10]]
 vim.cmd[[set nocompatible]]
 vim.cmd[[set number]]
 vim.cmd[[xnoremap p pgvy]]
@@ -649,34 +767,51 @@ vim.cmd[[xnoremap p pgvy]]
 -- ####################################################################################################################################################################################
 
 
-require('autosave').setup(
-    {
-        enabled = true,
-        execution_message = "AutoSave: saved at " .. vim.fn.strftime("%H:%M:%S"),
-        events = {"TextChanged", "InsertLeave"},
-        conditions = {
-            exists = true,
-            filename_is_not = {},
-            filetype_is_not = {},
-            modifiable = true
-        },
-        write_all_buffers = false,
-        on_off_commands = true,
-        clean_command_line_interval = 0
-    }
+require('auto-save').setup(
+  {
+    enabled = true,
+    execution_message = {
+      message = function() -- message to print on save
+        return ("AutoSave: saved at " .. vim.fn.strftime("%H:%M:%S"))
+      end,
+      dim = 0.18, -- dim the color of `message`
+      cleaning_interval = 1250, -- (milliseconds) automatically clean MsgArea after displaying `message`. See :h MsgArea
+    },
+    events = {"InsertLeave"},
+    conditions = {
+      exists = true,
+      modifiable = true
+    },
+    write_all_buffers = true,
+    on_off_commands = true,
+  }
 )
 
 
-require("toggleterm").setup{direction = "float"}
+require("toggleterm").setup{
+  direction = "float",
+  start_in_insert = true,
+  insert_mappings = true,
+  close_on_exit = true,
+  float_opts = {
+    border = 'curved',
+    winblend = 3,
+  },
+
+  winbar = {
+    enabled = true,
+    name_formatter = function(term) --  term: Terminal
+      return term.name
+    end
+  },
+}
+
+
 function _G.set_terminal_keymaps()
   local opts = {noremap = true}
-  vim.api.nvim_buf_set_keymap(0, 't', '<esc>', [[<C-\><C-n>]], opts)
-  vim.api.nvim_buf_set_keymap(0, 't', 'jk', [[<C-\><C-n>]], opts)
-  vim.api.nvim_buf_set_keymap(0, 't', '<C-h>', [[<C-\><C-n><C-W>h]], opts)
-  vim.api.nvim_buf_set_keymap(0, 't', '<C-j>', [[<C-\><C-n><C-W>j]], opts)
-  vim.api.nvim_buf_set_keymap(0, 't', '<C-k>', [[<C-\><C-n><C-W>k]], opts)
-  vim.api.nvim_buf_set_keymap(0, 't', '<C-l>', [[<C-\><C-n><C-W>l]], opts)
+  vim.api.nvim_buf_set_keymap(0, 't', '<leader><esc>', [[<C-\><C-n>]], opts)
 end
 
--- if you only want these mappings for toggle term use term://*toggleterm#* instead
+
 vim.cmd('autocmd! TermOpen term://* lua set_terminal_keymaps()')
+
