@@ -19,7 +19,6 @@ require('packer').startup(function()
   use { 'Pocco81/dap-buddy.nvim' }
   use { 'renerocksai/telekasten.nvim' }
   use { 'renerocksai/calendar-vim' }
-  use { 'mfussenegger/nvim-jdtls' }
   use { 
     "williamboman/mason-lspconfig.nvim",
     "williamboman/mason.nvim" 
@@ -79,18 +78,14 @@ require('packer').startup(function()
 }
   use 'rbong/vim-flog'
   use { 'tpope/vim-surround' }
-  use 'mg979/vim-visual-multi'
-  use {'nvim-orgmode/orgmode', config = function()
-          require('orgmode').setup_ts_grammar(){}
-  end
-  }
+  use {'mg979/vim-visual-multi', branch = 'master'}
   use 'wbthomason/packer.nvim' -- Package manager
   use 'tpope/vim-fugitive' -- Git commands in nvim
   use 'tpope/vim-commentary' -- "gc" to comment visual regions/lines
   -- UI to select things (files, grep results, open buffers...)
   use { "nvim-lua/plenary.nvim" }
   use { "nvim-lua/popup.nvim" }
-  use { "nvim-telescope/telescope.nvim" }
+  use { "nvim-telescope/telescope.nvim", tag = '0.1.2' }
   use { "nvim-telescope/telescope-file-browser.nvim" }
   use 'voldikss/vim-browser-search'
   use {'akinsho/flutter-tools.nvim', requires = 'nvim-lua/plenary.nvim'}
@@ -205,7 +200,11 @@ require('packer').startup(function()
       }
     end
   }
-  use {'glepnir/dashboard-nvim'}
+  use {
+  'glepnir/dashboard-nvim',
+  event = 'VimEnter',
+  requires = {'nvim-tree/nvim-web-devicons'}
+}
 end)
 
 -- ####################################################################################################################################################################################
@@ -277,23 +276,6 @@ require("indent_blankline").setup {
     show_current_context_start = true,
 }
 
--- ####################################################################################################################################################################################
---                                                                          ORGMODE
--- ####################################################################################################################################################################################
--- Tree-sitter configuration
-require'nvim-treesitter.configs'.setup {
-  -- If TS highlights are not enabled at all, or disabled via `disable` prop, highlighting will fallback to default Vim syntax highlighting
-  highlight = {
-    enable = true,
-    additional_vim_regex_highlighting = {'org'}, -- Required for spellcheck, some LaTex highlights and code block highlights that do not have ts grammar
-  },
-  ensure_installed = {'org'}, -- Or run :TSUpdate org
-}
-
-require('orgmode').setup({
-  org_agenda_files = {'~/org/*'},
-  org_default_notes_file = '~/org/refile.org',
-})
 
 -- ####################################################################################################################################################################################
 --                                                                          DBUI
@@ -372,12 +354,10 @@ cmp.setup {
       ['<CR>'] = cmp.mapping.confirm({ select = true }),
   },
   sources = cmp.config.sources({
-      { name = 'nvim-jdtls' },
       { name = 'nvim_lsp' },
       { name = 'ultisnips' }, -- For ultisnips users.
       { name = 'emoji' },
       { name = 'path' },
-      { name = 'orgmode'}
     }
   )
 }
@@ -404,7 +384,7 @@ npairs.setup({
 -- ####################################################################################################################################################################################
 
 --Set highlight on search
-vim.o.hlsearch = false
+vim.o.hlsearch = true
 
 --Make line numbers default
 vim.wo.number = true
@@ -470,18 +450,12 @@ require("telescope").load_extension('file_browser')
 require('telescope').load_extension('media_files')
 require('telescope').setup {
   pickers = {
-    live_grep = {
-      additional_args = function(opts)
-        return {"--hidden"}
-      end
-    },
   },
   extensions = {
     media_files = {
       -- filetypes whitelist
       -- defaults to {"png", "jpg", "mp4", "webm", "pdf"}
       filetypes = {"png", "webp", "jpg", "jpeg"},
-      find_cmd = "rg" -- find command (defaults to `fd`)
     },
     file_browser = {
       theme = "ivy",
@@ -566,6 +540,7 @@ require('nvim-treesitter.configs').setup {
 
 vim.api.nvim_set_keymap('v', '<C-c>', [["+y]], { noremap = false, silent = true })
 vim.api.nvim_set_keymap('v', '<leader>p', [["+p]], { noremap = false, silent = true })
+vim.api.nvim_set_keymap('v', '<leader>pt', [[<cmd>BufferLineTogglePin<CR>]], { noremap = false, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>1', [[<cmd>ToggleTerm 1<CR>]], { noremap = false, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>2', [[<cmd>ToggleTerm 2<CR>]], { noremap = false, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>3', [[<cmd>ToggleTerm 3<CR>]], { noremap = false, silent = true })
@@ -586,7 +561,7 @@ vim.api.nvim_set_keymap('n', '<leader>fbg', [[<cmd>lua require('telescope.builti
 vim.api.nvim_set_keymap('n', '<leader>sh', [[<cmd>lua require('telescope.builtin').help_tags()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>ft', [[<cmd>lua require('telescope.builtin').tags()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>sd', [[<cmd>lua require('telescope.builtin').grep_string()<CR>]], { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>fg', [[<cmd>lua require('telescope.builtin').live_grep({hidden = true})<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>fg', [[<cmd>lua require('telescope.builtin').live_grep()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>so', [[<cmd>lua require('telescope.builtin').tags{ only_current_buffer = true }<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>?', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>ws', [[<cmd>lua require("telescope").extensions.arecibo.websearch()<CR>]], { noremap = true, silent = true })
@@ -679,7 +654,7 @@ local handlers =  {
   ["textDocument/signatureHelp"] =  vim.lsp.with(vim.lsp.handlers.signature_help, {border = border }),
 }
 local lspconfig = require('lspconfig')
-local servers = { 'pyright', 'pylsp', 'rust_analyzer', 'tsserver', 'vuels', 'cssls', 'dockerls', 'yamlls', 'html',  'angularls', 'svelte', 'denols'}
+local servers = { 'pyright', 'pylsp', 'rust_analyzer', 'tsserver', 'vuels', 'cssls', 'dockerls', 'yamlls', 'html',  'angularls', 'svelte', 'denols', 'jdtls'}
 for _, lsp in pairs(servers) do
   lspconfig[lsp].setup {
     on_attach = on_attach,
@@ -690,7 +665,6 @@ end
 lspconfig.eslint.setup({
   filetypes = { "javascript", "javascriptreact", "javascript.jsx", "typescript", "typescriptreact", "typescript.tsx", "vue", "svelte", "astro" },
 })
-
 vim.g.markdown_fenced_languages = {
   "ts=typescript"
 }
@@ -732,6 +706,48 @@ require("bufferline").setup{
     separator_style = "slant",
     tab_size = 18,
     show_buffer_icons = true,
+    hover = {
+      enabled = true,
+      delay = 200,
+      reveal = {'close'}
+    },
+    groups = {
+      options = {
+        toggle_hidden_on_enter = true -- when you re-enter a hidden group this options re-opens that group so the buffer is visible
+      },
+      items = {
+        require('bufferline.groups').builtin.pinned:with({ icon = "" }),
+        {
+          name = "Tests", -- Mandatory
+          highlight = {underline = true, sp = "blue"}, -- Optional
+          priority = 2, -- determines where it will appear relative to other groups (Optional)
+          icon = "", -- Optional
+          matcher = function(buf) -- Mandatory
+            return buf.filename:match('%_test') or buf.filename:match('%_spec')
+          end,
+        },
+        {
+          name = "Docs",
+          highlight = {undercurl = true, sp = green},
+          auto_close = false,  -- whether or not close this group if it doesn't contain the current buffer
+          matcher = function(buf)
+            return buf.filename:match('%.md')
+          end,
+          separator = { -- Optional
+            style = require('bufferline.groups').separator.tab
+          },
+        },
+      }
+    },
+    diagnostics_indicator = function(count, level, diagnostics_dict, context)
+      local s = " "
+      for e, n in pairs(diagnostics_dict) do
+        local sym = e == "error" and " "
+        or (e == "warning" and " " or "" )
+        s = s .. n .. sym
+      end
+      return s
+    end,
     custom_filter = function(buf_number)
         if string.match(vim.fn.bufname(buf_number), "fish") or
            string.match(vim.fn.bufname(buf_number), "git") or
@@ -741,7 +757,6 @@ require("bufferline").setup{
           return true
         end
     end,
-    sort_by =  'directory'
   }
 }
 
