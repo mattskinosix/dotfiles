@@ -18,22 +18,12 @@ require('packer').startup(function()
   use { 'mfussenegger/nvim-dap' }
   use { 'Pocco81/dap-buddy.nvim' }
   use { 'renerocksai/telekasten.nvim' }
-  use { 'renerocksai/calendar-vim' }
-  use { 
-    "williamboman/mason-lspconfig.nvim",
-    "williamboman/mason.nvim" 
-  }
-
   use {
     'kyazdani42/nvim-tree.lua',
     requires = {
       'kyazdani42/nvim-web-devicons', -- optional, for file icons
     },
     tag = 'nightly' -- optional, updated every week. (see issue #1193)
-  }
-  use {
-    'glacambre/firenvim',
-    run = function() vim.fn['firenvim#install'](0) end 
   }
   use { 'iamcco/markdown-preview.nvim', run = 'cd app && yarn install'}
   use {"akinsho/toggleterm.nvim", tag = '*'}
@@ -78,7 +68,6 @@ require('packer').startup(function()
 }
   use 'rbong/vim-flog'
   use { 'tpope/vim-surround' }
-  use {'mg979/vim-visual-multi', branch = 'master'}
   use 'wbthomason/packer.nvim' -- Package manager
   use 'tpope/vim-fugitive' -- Git commands in nvim
   use 'tpope/vim-commentary' -- "gc" to comment visual regions/lines
@@ -125,8 +114,6 @@ require('packer').startup(function()
           "hrsh7th/cmp-nvim-lsp-document-symbol",
         },
       }
-  use 'hrsh7th/cmp-nvim-lsp' -- LSP source for nvim-cmp
-  -- Additional textobjects for treesitter
   use 'nvim-treesitter/nvim-treesitter'
   use 'nvim-treesitter/nvim-treesitter-textobjects'
   use 'neovim/nvim-lspconfig' -- Collection of configurations for built-in LSP client
@@ -203,6 +190,10 @@ require('packer').startup(function()
   use {
   'glepnir/dashboard-nvim',
   event = 'VimEnter',
+  config = function()
+    require('dashboard').setup {
+    }
+  end,
   requires = {'nvim-tree/nvim-web-devicons'}
 }
 end)
@@ -217,10 +208,6 @@ require('wlsample.airline_luffy')
 -- ####################################################################################################################################################################################
 --                                                                        VIMSPECTOR
 -- ####################################################################################################################################################################################
-
-require("mason").setup()
-require("mason-lspconfig").setup()
-
 
 local dap = require('dap')
 
@@ -258,11 +245,6 @@ dap.configurations.python = {
 
 
 
-
-
-
-
-
 -- ####################################################################################################################################################################################
 --                                                                        BLANKLINE
 -- ####################################################################################################################################################################################
@@ -294,8 +276,7 @@ vim.g.dashboard_default_executive = 'telescope'
 --                                                                           LSP
 -- ####################################################################################################################################################################################
 
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
+
 
 -- ####################################################################################################################################################################################
 --                                                                           nerdtree
@@ -303,16 +284,7 @@ capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
 vim.g.loaded = 1
 vim.g.loaded_netrwPlugin = 1
-require("nvim-tree").setup({
-  sort_by = "case_sensitive",
-  view = {
-    mappings = {
-      list = {
-        { key = "u", action = "dir_up" },
-      },
-    },
-  },
-})
+require("nvim-tree").setup()
 
 -- ####################################################################################################################################################################################
 --                                                                           CMP
@@ -347,17 +319,15 @@ cmp.setup {
   mapping = {
       ['<Up>'] = cmp.mapping.select_prev_item(),
       ['<Down>'] = cmp.mapping.select_next_item(),
-      ['<C-Up>'] = cmp.mapping.scroll_docs(-4),
-      ['<C-Down>'] = cmp.mapping.scroll_docs(4),
       ['<C-Space>'] = cmp.mapping.complete(),
       ['<C-e>'] = cmp.mapping.abort(),
       ['<CR>'] = cmp.mapping.confirm({ select = true }),
   },
   sources = cmp.config.sources({
-      { name = 'nvim_lsp' },
-      { name = 'ultisnips' }, -- For ultisnips users.
-      { name = 'emoji' },
-      { name = 'path' },
+      { name = 'nvim_lsp', priority=30},
+      { name = 'ultisnips', priority=25 }, -- For ultisnips users.
+      { name = 'emoji', priority=15 },
+      { name = 'path', priority=10 },
     }
   )
 }
@@ -367,6 +337,7 @@ cmp.setup.filetype('gitcommit', {
       { name = 'cmp_git' }, -- You can specify the `cmp_git` source if you were installed it.
     })
   })
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
 -- ####################################################################################################################################################################################
 --                                                                          NPAIRS
@@ -448,7 +419,20 @@ require('gitsigns').setup {
 -- you need to call load_extension, somewhere after setup function:
 require("telescope").load_extension('file_browser')
 require('telescope').load_extension('media_files')
+
 require('telescope').setup {
+  defaults = {
+    vimgrep_arguments = {
+      'rg',
+      '--color=never',
+      '--no-heading',
+      '--with-filename',
+      '--line-number',
+      '--column',
+      '--smart-case',
+      '--hidden',
+    },
+  },
   pickers = {
   },
   extensions = {
@@ -653,18 +637,35 @@ local handlers =  {
   ["textDocument/hover"] =  vim.lsp.with(vim.lsp.handlers.hover, {border = border}),
   ["textDocument/signatureHelp"] =  vim.lsp.with(vim.lsp.handlers.signature_help, {border = border }),
 }
+
 local lspconfig = require('lspconfig')
-local servers = { 'pyright', 'pylsp', 'rust_analyzer', 'tsserver', 'vuels', 'cssls', 'dockerls', 'yamlls', 'html',  'angularls', 'svelte', 'denols', 'jdtls'}
+local servers = { 'pyright', 'rust_analyzer', 'tsserver', 'vuels', 'cssls', 'dockerls', 'yamlls', 'html', 'svelte', 'denols', 'pylsp'}
+
 for _, lsp in pairs(servers) do
   lspconfig[lsp].setup {
     on_attach = on_attach,
-    handlers=handlers,
+    capabilities=capabilities,
     single_file_support = true,
   }
 end
+
+lspconfig.jdtls.setup{
+  cmd = { 'jdtls' },
+  init_options = {
+    jvm_args = {
+      "~/.config/nvim/dependencies/lombok.jar"
+    },
+    workspace = "~/.cache/jdtls/workspace"
+  },
+  on_attach = on_attach,
+  capabilities=capabilities,
+}
+
+
 lspconfig.eslint.setup({
-  filetypes = { "javascript", "javascriptreact", "javascript.jsx", "typescript", "typescriptreact", "typescript.tsx", "vue", "svelte", "astro" },
+  filetypes = { "javascript", "javascriptreact", "javascript.jsx", "typescript", "typescriptreact", "typescript.tsx", "vue", "svelte", "astro", "python" },
 })
+
 vim.g.markdown_fenced_languages = {
   "ts=typescript"
 }
