@@ -1,108 +1,68 @@
 -- Install packer
-local install_path = vim.fn.stdpath 'data' .. '/site/pack/packer/start/packer.nvim'
-
-if vim.fn.empty(vim.fn.glob(install_path)) > 0 then
-  vim.fn.execute('!git clone https://github.com/wbthomason/packer.nvim ' .. install_path)
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable", -- latest stable release
+    lazypath,
+  })
 end
+vim.opt.rtp:prepend(lazypath)
 
-vim.cmd [[
-  augroup Packer
-    autocmd!
-    autocmd BufWritePost init.lua PackerCompile
-  augroup end
-]]
-
-local use = require('packer').use
-require('packer').startup(function()
-  use { 'knubie/vim-kitty-navigator' }
-  use { 'mfussenegger/nvim-dap' }
-  use { 'Pocco81/dap-buddy.nvim' }
-  use { 'renerocksai/telekasten.nvim' }
-  use {
+require("lazy").setup({
+  { 'uga-rosa/translate.nvim' },
+  { 'knubie/vim-kitty-navigator' },
+  { 'mfussenegger/nvim-dap' },
+  { 'Pocco81/dap-buddy.nvim' },
+  { 'renerocksai/telekasten.nvim' },
+  {
     'kyazdani42/nvim-tree.lua',
-    requires = {
-      'kyazdani42/nvim-web-devicons', -- optional, for file icons
-    },
-    tag = 'nightly' -- optional, updated every week. (see issue #1193)
-  }
-  use { 'iamcco/markdown-preview.nvim', run = 'cd app && yarn install'}
-  use {"akinsho/toggleterm.nvim", tag = '*'}
-  use {
+  },
+  { 'iamcco/markdown-preview.nvim', run = 'cd app && yarn install'},
+  {
     "NTBBloodbath/rest.nvim",
-    requires = { "nvim-lua/plenary.nvim" },
-    config = function()
-      require("rest-nvim").setup({
-        -- Open request results in a horizontal split
-        result_split_horizontal = false,
-        -- Skip SSL verification, useful for unknown certificates
-        skip_ssl_verification = false,
-        -- Highlight request on run
-        highlight = {
-          enabled = true,
-          timeout = 150,
-        },
-        result = {
-          -- toggle showing URL, HTTP info, headers at top the of result window
-          show_url = true,
-          show_http_info = true,
-          show_headers = true,
-        },
-        -- Jump to request line on run
-        jump_to_request = false,
-        env_file = '.env',
-        custom_dynamic_variables = {},
-        yank_dry_run = true,
-      })
-    end
-  }
-  use { "vim-test/vim-test" }
-  use { "ellisonleao/gruvbox.nvim" }
-  use {
+    dependencies = { "nvim-lua/plenary.nvim" },
+  },
+  { "vim-test/vim-test" },
+  { "ellisonleao/gruvbox.nvim" },
+  {
     "Pocco81/auto-save.nvim",
     config = function()
-         require("auto-save").setup {
-            -- your config goes here
-            -- or just leave it empty :)
+      require("auto-save").setup {
+        -- your config goes here
+        -- or just leave it empty :)
          }
     end,
-}
-  use 'rbong/vim-flog'
-  use { 'tpope/vim-surround' }
-  use 'wbthomason/packer.nvim' -- Package manager
-  use 'tpope/vim-fugitive' -- Git commands in nvim
-  use 'tpope/vim-commentary' -- "gc" to comment visual regions/lines
+},
+   'rbong/vim-flog',
+   { 'tpope/vim-surround' },
+   'tpope/vim-fugitive', -- Git commands in nvim
+   'tpope/vim-commentary', -- "gc" to comment visual regions/lines
   -- UI to select things (files, grep results, open buffers...)
-  use { "nvim-lua/plenary.nvim" }
-  use { "nvim-lua/popup.nvim" }
-  use { "nvim-telescope/telescope.nvim", tag = '0.1.2' }
-  use { "nvim-telescope/telescope-file-browser.nvim" }
-  use 'voldikss/vim-browser-search'
-  use {'akinsho/flutter-tools.nvim', requires = 'nvim-lua/plenary.nvim'}
-  use { "nvim-telescope/telescope-media-files.nvim" }
+   { "nvim-lua/plenary.nvim" },
+   { "nvim-lua/popup.nvim" },
+   { "nvim-telescope/telescope.nvim", tag = '0.1.2' },
+   { "nvim-telescope/telescope-file-browser.nvim" },
+   'voldikss/vim-browser-search',
+   {'akinsho/flutter-tools.nvim', dependencies = 'nvim-lua/plenary.nvim'},
+   { "nvim-telescope/telescope-media-files.nvim" },
   -- Add indentation guides even on blank lines
-  use 'lukas-reineke/indent-blankline.nvim'
+   { "lukas-reineke/indent-blankline.nvim" },
   -- Add git related info in the signs columns and popups
-  use { 'lewis6991/gitsigns.nvim', requires = { 'nvim-lua/plenary.nvim' } }
+   { 'lewis6991/gitsigns.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
   -- Highlight, edit, and navigate code using a fast incremental parsing library
-  use({"petertriho/cmp-git", requires = "nvim-lua/plenary.nvim"})
-  use { 'SirVer/ultisnips' }
-  use { 'honza/vim-snippets' }
-  use {
+  ({"petertriho/cmp-git", dependencies = "nvim-lua/plenary.nvim"}),
+   { 'SirVer/ultisnips' },
+   { 'honza/vim-snippets' },
+   {
         "hrsh7th/nvim-cmp",
-        requires = {
+        dependencies = {
           "hrsh7th/cmp-buffer",
           "hrsh7th/cmp-nvim-lsp",
           "quangnguyen30192/cmp-nvim-ultisnips",
-          config = function()
-            -- optional call to setup (see customization section)
-          require("cmp_nvim_ultisnips").setup{
-             filetype_source = "treesitter",
-             show_snippets = "all",
-             documentation = function(snippet)
-               return snippet.description
-             end 
-          }
-          end,
           "hrsh7th/cmp-nvim-lua",
           "octaltree/cmp-look",
           "hrsh7th/cmp-path",
@@ -113,90 +73,133 @@ require('packer').startup(function()
           "hrsh7th/cmp-cmdline",
           "hrsh7th/cmp-nvim-lsp-document-symbol",
         },
-      }
-  use 'nvim-treesitter/nvim-treesitter'
-  use 'nvim-treesitter/nvim-treesitter-textobjects'
-  use 'neovim/nvim-lspconfig' -- Collection of configurations for built-in LSP client
-  use 'windwp/nvim-autopairs'
-  use 'tpope/vim-dadbod'
-  use 'kristijanhusak/vim-dadbod-ui'
-  use 'kristijanhusak/vim-dadbod-completion'
+      },
+   'nvim-treesitter/nvim-treesitter',
+   'nvim-treesitter/nvim-treesitter-textobjects',
+   'neovim/nvim-lspconfig', -- Collection of configurations for built-in LSP client
+   'windwp/nvim-autopairs',
+   'tpope/vim-dadbod',
+   'kristijanhusak/vim-dadbod-ui',
+   'kristijanhusak/vim-dadbod-completion',
   -- using packer.nvim
-  use {'akinsho/bufferline.nvim', tag = "v2.*", requires = 'kyazdani42/nvim-web-devicons'}
-  use('prettier/vim-prettier')
-  use {
+  {'akinsho/bufferline.nvim', version = "*", dependencies = 'kyazdani42/nvim-web-devicons'},
+  'prettier/vim-prettier',
+  {
       "rcarriga/nvim-notify",
       event = "VimEnter",
-      config = function()
-        vim.notify = require "notify"
-      end,
-  }
+  },
   -- Lua
-  use { "RRethy/vim-illuminate" }
-  use { "windwp/windline.nvim" }
-  use {
+  { "RRethy/vim-illuminate" },
+  { "windwp/windline.nvim" },
+  {
     "folke/trouble.nvim",
-    requires = "kyazdani42/nvim-web-devicons",
-    config = function()
-      require("trouble").setup {
-        position = "bottom", -- position of the list can be: bottom, top, left, right
-        height = 10, -- height of the trouble list when position is top or bottom
-        width = 50, -- width of the list when position is left or right
-        icons = true, -- use devicons for filenames
-        mode = "document_diagnostics", -- "workspace_diagnostics", "document_diagnostics", "quickfix", "lsp_references", "loclist"
-        fold_open = "", -- icon used for open folds
-        fold_closed = "", -- icon used for closed folds
-        group = true, -- group results by file
-        padding = true, -- add an extra new line on top of the list
-        action_keys = { -- key mappings for actions in the trouble list
-          -- map to {} to remove a mapping, for example:
-          -- close = {},
-          close = "q", -- close the list
-          cancel = "<esc>", -- cancel the preview and get back to your last window / buffer / cursor
-          refresh = "r", -- manually refresh
-          jump = {"<cr>", "<tab>"}, -- jump to the diagnostic or open / close folds
-          open_split = { "<c-x>" }, -- open buffer in new split
-          open_vsplit = { "<c-v>" }, -- open buffer in new vsplit
-          open_tab = { "<c-t>" }, -- open buffer in new tab
-          jump_close = {"o"}, -- jump to the diagnostic and close the listA
-          toggle_mode = "m", -- toggle between "workspace" and "document" diagnostics mode
-          toggle_preview = "P", -- toggle auto_preview
-          hover = "K", -- opens a small popup with the full multiline message
-          preview = "p", -- preview the diagnostic location
-          close_folds = {"zM", "zm"}, -- close all folds
-          open_folds = {"zR", "zr"}, -- open all folds
-          toggle_fold = {"zA", "za"}, -- toggle fold of current file
-          previous = "k", -- previous item
-          next = "j" -- next item
-        },
-        auto_open = false, -- automatically open the list when you have diagnostics
-        auto_close = false, -- automatically close the list when you have no diagnostics
-        auto_preview = false, -- automatically preview the location of the diagnostic. <esc> to close preview and go back to last window
-        auto_fold = false, -- automatically fold a file trouble list at creation
-        auto_jump = {"lsp_definitions"}, -- for the given modes, automatically jump if there is only a single result
-        signs = {
-          -- icons / text used for a diagnostic
-          error = "",
-          warning = "",
-          hint = "",
-          information = "",
-          other = "﫠"
-        },
-        use_diagnostic_signs = false
+    dependencies = "kyazdani42/nvim-web-devicons",
+  },
+  {
+    'glepnir/dashboard-nvim',
+    event = 'VimEnter',
+  },
+  {'akinsho/toggleterm.nvim', version = "*", config = true}
+})
 
-      }
-    end
-  }
-  use {
-  'glepnir/dashboard-nvim',
-  event = 'VimEnter',
-  config = function()
-    require('dashboard').setup {
-    }
-  end,
-  requires = {'nvim-tree/nvim-web-devicons'}
+
+
+vim.notify = require "notify"
+
+require('dashboard').setup {
 }
-end)
+
+require("cmp_nvim_ultisnips").setup{
+  filetype_source = "treesitter",
+  show_snippets = "all",
+  documentation = function(snippet)
+    return snippet.description
+  end 
+}
+
+require("trouble").setup {
+  position = "bottom", -- position of the list can be: bottom, top, left, right
+  height = 10, -- height of the trouble list when position is top or bottom
+  width = 50, -- width of the list when position is left or right
+  icons = true, -- use devicons for filenames
+  mode = "document_diagnostics", -- "workspace_diagnostics", "document_diagnostics", "quickfix", "lsp_references", "loclist"
+  fold_open = "", -- icon used for open folds
+  fold_closed = "", -- icon used for closed folds
+  group = true, -- group results by file
+  padding = true, -- add an extra new line on top of the list
+  action_keys = { -- key mappings for actions in the trouble list
+    -- map to {} to remove a mapping, for example:
+    -- close = {},
+    close = "q", -- close the list
+    cancel = "<esc>", -- cancel the preview and get back to your last window / buffer / cursor
+    refresh = "r", -- manually refresh
+    jump = {"<cr>", "<tab>"}, -- jump to the diagnostic or open / close folds
+    open_split = { "<c-x>" }, -- open buffer in new split
+    open_vsplit = { "<c-v>" }, -- open buffer in new vsplit
+    open_tab = { "<c-t>" }, -- open buffer in new tab
+    jump_close = {"o"}, -- jump to the diagnostic and close the listA
+    toggle_mode = "m", -- toggle between "workspace" and "document" diagnostics mode
+    toggle_preview = "P", -- toggle auto_preview
+    hover = "K", -- opens a small popup with the full multiline message
+    preview = "p", -- preview the diagnostic location
+    close_folds = {"zM", "zm"}, -- close all folds
+    open_folds = {"zR", "zr"}, -- open all folds
+    toggle_fold = {"zA", "za"}, -- toggle fold of current file
+    previous = "k", -- previous item
+    next = "j" -- next item
+  },
+  auto_open = false, -- automatically open the list when you have diagnostics
+  auto_close = false, -- automatically close the list when you have no diagnostics
+  auto_preview = false, -- automatically preview the location of the diagnostic. <esc> to close preview and go back to last window
+  auto_fold = false, -- automatically fold a file trouble list at creation
+  auto_jump = {"lsp_definitions"}, -- for the given modes, automatically jump if there is only a single result
+  signs = {
+    -- icons / text used for a diagnostic
+    error = "",
+    warning = "",
+    hint = "",
+    information = "",
+    other = "﫠"
+  },
+  use_diagnostic_signs = false
+
+}
+
+require("rest-nvim").setup({
+  -- Open request results in a horizontal split
+  result_split_horizontal = false,
+  -- Skip SSL verification, useful for unknown certificates
+  skip_ssl_verification = false,
+  -- Highlight request on run
+  highlight = {
+    enabled = true,
+    timeout = 150,
+  },
+  result = {
+    -- toggle showing URL, HTTP info, headers at top the of result window
+    show_url = true,
+    show_http_info = true,
+    show_headers = true,
+  },
+  -- Jump to request line on run
+  jump_to_request = false,
+  env_file = '.env',
+  custom_dynamic_variables = {},
+  yank_dry_run = true,
+})
+-- ####################################################################################################################################################################################
+--                                                                       traslate 
+-- ####################################################################################################################################################################################
+require("translate").setup({
+    default = {
+        command = "google",
+    },
+    preset = {
+        output = {
+            replace = "rate",
+        },
+    },
+})
 
 -- ####################################################################################################################################################################################
 --                                                                        WILDLINE
@@ -248,14 +251,21 @@ dap.configurations.python = {
 -- ####################################################################################################################################################################################
 --                                                                        BLANKLINE
 -- ####################################################################################################################################################################################
-vim.opt.list = true
-vim.opt.listchars:append("space:⋅")
-vim.opt.listchars:append("eol:↴")
+vim.opt.termguicolors = true
+vim.cmd [[highlight IndentBlanklineIndent1 guibg=#1f1f1f gui=nocombine]]
+vim.cmd [[highlight IndentBlanklineIndent2 guibg=#1a1a1a gui=nocombine]]
 
 require("indent_blankline").setup {
-    space_char_blankline = " ",
-    show_current_context = true,
-    show_current_context_start = true,
+    char = "",
+    char_highlight_list = {
+        "IndentBlanklineIndent1",
+        "IndentBlanklineIndent2",
+    },
+    space_char_highlight_list = {
+        "IndentBlanklineIndent1",
+        "IndentBlanklineIndent2",
+    },
+    show_trailing_blankline_indent = false,
 }
 
 
@@ -308,7 +318,7 @@ cmp.setup.cmdline(':', {
       { name = 'buffer' }
     }
   })
-local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
+-- local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
 
 cmp.setup {
   snippet = {
@@ -657,7 +667,7 @@ lspconfig.jdtls.setup{
     },
     workspace = "~/.cache/jdtls/workspace"
   },
-  on_attach = on_attach,
+  on_attach=on_attach,
   capabilities=capabilities,
 }
 
@@ -690,7 +700,12 @@ vim.diagnostic.config({
 --                                                                           FLUTTER
 -- ####################################################################################################################################################################################
 
-require("flutter-tools").setup{}
+require("flutter-tools").setup{
+  lsp = {
+    on_attach = on_attach,
+    capabilities = capabilities 
+  }-- e.g. lsp_status capabilities
+}
 -- ####################################################################################################################################################################################
 --                                                                           Prettier
 -- ####################################################################################################################################################################################
@@ -716,29 +731,6 @@ require("bufferline").setup{
       options = {
         toggle_hidden_on_enter = true -- when you re-enter a hidden group this options re-opens that group so the buffer is visible
       },
-      items = {
-        require('bufferline.groups').builtin.pinned:with({ icon = "" }),
-        {
-          name = "Tests", -- Mandatory
-          highlight = {underline = true, sp = "blue"}, -- Optional
-          priority = 2, -- determines where it will appear relative to other groups (Optional)
-          icon = "", -- Optional
-          matcher = function(buf) -- Mandatory
-            return buf.filename:match('%_test') or buf.filename:match('%_spec')
-          end,
-        },
-        {
-          name = "Docs",
-          highlight = {undercurl = true, sp = green},
-          auto_close = false,  -- whether or not close this group if it doesn't contain the current buffer
-          matcher = function(buf)
-            return buf.filename:match('%.md')
-          end,
-          separator = { -- Optional
-            style = require('bufferline.groups').separator.tab
-          },
-        },
-      }
     },
     diagnostics_indicator = function(count, level, diagnostics_dict, context)
       local s = " "
@@ -828,6 +820,7 @@ function _G.set_terminal_keymaps()
   vim.api.nvim_buf_set_keymap(0, 't', '<leader><esc>', [[<C-\><C-n>]], opts)
 end
 
-
 vim.cmd('autocmd! TermOpen term://* lua set_terminal_keymaps()')
 
+require'switch_case'
+vim.api.nvim_set_keymap('n', '<Leader>s', '<cmd>lua require("switch_case").switch_case()<CR>', {noremap = true, silent = true})
