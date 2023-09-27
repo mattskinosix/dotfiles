@@ -13,6 +13,24 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
+  -- lazy.nvim:
+  {
+    "glacambre/firenvim",
+    lazy = not vim.g.started_by_firenvim,
+    module = false,
+    build = function()
+        vim.fn["firenvim#install"](0)
+    end,
+  },
+  {
+    "smoka7/multicursors.nvim",
+    event = "VeryLazy",
+    dependencies = {
+      'smoka7/hydra.nvim',
+    },
+    opts = {},
+    cmd = { 'MCstart', 'MCvisual', 'MCclear', 'MCpattern', 'MCvisualPattern', 'MCunderCursor' },
+  },
   { 'uga-rosa/translate.nvim' },
   { 'knubie/vim-kitty-navigator' },
   { 'mfussenegger/nvim-dap' },
@@ -544,7 +562,7 @@ vim.api.nvim_set_keymap('n', '<leader>6', [[<cmd>ToggleTerm 6<CR>]], { noremap =
 vim.api.nvim_set_keymap('n', '<leader>7', [[<cmd>ToggleTerm 7<CR>]], { noremap = false, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>8', [[<cmd>ToggleTerm 8<CR>]], { noremap = false, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>9', [[<cmd>ToggleTerm 9<CR>]], { noremap = false, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>m', [[<cmd>Merginal<CR>]], { noremap = false, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>m', [[<cmd>MCstart<CR>]], { noremap = false, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>r', [[<Plug>RestNvim]], { noremap = false, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>d', [[:NvimTreeOpen<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>g', [[<cmd>Git<CR>]], { noremap = true, silent = true })
@@ -597,29 +615,6 @@ vim.api.nvim_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', op
 vim.api.nvim_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
 vim.api.nvim_set_keymap('n', '<space>q', '<cmd>lua vim.diagnostic.setloclist()<CR>', opts)
 
--- Use an on_attach function to only map the following keys
--- after the language server attaches to the current buffer
-local on_attach = function(client, bufnr)
-  -- Enable completion triggered by <c-x><c-o>
-  vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
-
-  -- Mappings.
-  -- See `:help vim.lsp.*` for documentation on any of the below functions
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<C-k>', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'f', '<cmd>lua vim.lsp.buf.format { async = true}<CR>', opts)
-  require 'illuminate'.on_attach(client)
-end
 
 
 
@@ -651,6 +646,46 @@ local handlers =  {
 local lspconfig = require('lspconfig')
 local servers = { 'pyright', 'rust_analyzer', 'tsserver', 'vuels', 'cssls', 'dockerls', 'yamlls', 'html', 'svelte', 'denols', 'pylsp'}
 
+local function buffer_augroup(group, bufnr, cmds)
+  vim.api.nvim_create_augroup(group, { clear = false })
+  vim.api.nvim_clear_autocmds({ group = group, buffer = bufnr })
+  for _, cmd in ipairs(cmds) do
+    local event = cmd.event
+    cmd.event = nil
+    vim.api.nvim_create_autocmd(event, vim.tbl_extend("keep", { group = group, buffer = bufnr }, cmd))
+  end
+end
+-- Use an on_attach function to only map the following keys
+-- after the language server attaches to the current buffer
+local on_attach = function(client, bufnr)
+  -- Enable completion triggered by <c-x><c-o>
+  vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+
+  -- Mappings.
+  -- See `:help vim.lsp.*` for documentation on any of the below functions
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<C-k>', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
+  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'f', '<cmd>lua vim.lsp.buf.format { async = true}<CR>', opts)
+  require 'illuminate'.on_attach(client)
+  local detach = function()
+    vim.lsp.buf_detach_client(bufnr, client.id)
+    vim.lsp.stop_client(client.id)
+  end
+  buffer_augroup("entropitor:lsp:closing", bufnr, {
+    { event = "BufDelete", callback = detach },
+  })
+end
+
 for _, lsp in pairs(servers) do
   lspconfig[lsp].setup {
     on_attach = on_attach,
@@ -671,6 +706,12 @@ lspconfig.jdtls.setup{
   capabilities=capabilities,
 }
 
+require("flutter-tools").setup{
+  lsp = {
+    on_attach = on_attach,
+    capabilities = capabilities 
+  }-- e.g. lsp_status capabilities
+}
 
 lspconfig.eslint.setup({
   filetypes = { "javascript", "javascriptreact", "javascript.jsx", "typescript", "typescriptreact", "typescript.tsx", "vue", "svelte", "astro", "python" },
@@ -700,12 +741,7 @@ vim.diagnostic.config({
 --                                                                           FLUTTER
 -- ####################################################################################################################################################################################
 
-require("flutter-tools").setup{
-  lsp = {
-    on_attach = on_attach,
-    capabilities = capabilities 
-  }-- e.g. lsp_status capabilities
-}
+
 -- ####################################################################################################################################################################################
 --                                                                           Prettier
 -- ####################################################################################################################################################################################
