@@ -22,20 +22,15 @@ require("lazy").setup({
         vim.fn["firenvim#install"](0)
     end,
   },
-  {
-    "smoka7/multicursors.nvim",
-    event = "VeryLazy",
-    dependencies = {
-      'smoka7/hydra.nvim',
-    },
-    opts = {},
-    cmd = { 'MCstart', 'MCvisual', 'MCclear', 'MCpattern', 'MCvisualPattern', 'MCunderCursor' },
-  },
+  {'mg979/vim-visual-multi' },  
   { 'uga-rosa/translate.nvim' },
   { 'knubie/vim-kitty-navigator' },
   { 'mfussenegger/nvim-dap' },
   { 'Pocco81/dap-buddy.nvim' },
-  { 'renerocksai/telekasten.nvim' },
+  {
+    'renerocksai/telekasten.nvim',
+    dependencies = {'nvim-telescope/telescope.nvim'}
+  },
   {
     'kyazdani42/nvim-tree.lua',
   },
@@ -68,7 +63,7 @@ require("lazy").setup({
    {'akinsho/flutter-tools.nvim', dependencies = 'nvim-lua/plenary.nvim'},
    { "nvim-telescope/telescope-media-files.nvim" },
   -- Add indentation guides even on blank lines
-   { "lukas-reineke/indent-blankline.nvim" },
+   { "lukas-reineke/indent-blankline.nvim", main = "ibl", opts = {} },
   -- Add git related info in the signs columns and popups
    { 'lewis6991/gitsigns.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
   -- Highlight, edit, and navigate code using a fast incremental parsing library
@@ -123,6 +118,7 @@ require("lazy").setup({
 
 
 vim.notify = require "notify"
+require("ibl").setup()
 
 require('dashboard').setup {
 }
@@ -229,6 +225,9 @@ require('wlsample.airline_luffy')
 -- ####################################################################################################################################################################################
 --                                                                        VIMSPECTOR
 -- ####################################################################################################################################################################################
+require('telekasten').setup({
+  home = vim.fn.expand("~/zettelkasten"), -- Put the name of your notes directory here
+})
 
 local dap = require('dap')
 
@@ -269,22 +268,6 @@ dap.configurations.python = {
 -- ####################################################################################################################################################################################
 --                                                                        BLANKLINE
 -- ####################################################################################################################################################################################
-vim.opt.termguicolors = true
-vim.cmd [[highlight IndentBlanklineIndent1 guibg=#1f1f1f gui=nocombine]]
-vim.cmd [[highlight IndentBlanklineIndent2 guibg=#1a1a1a gui=nocombine]]
-
-require("indent_blankline").setup {
-    char = "",
-    char_highlight_list = {
-        "IndentBlanklineIndent1",
-        "IndentBlanklineIndent2",
-    },
-    space_char_highlight_list = {
-        "IndentBlanklineIndent1",
-        "IndentBlanklineIndent2",
-    },
-    show_trailing_blankline_indent = false,
-}
 
 
 -- ####################################################################################################################################################################################
