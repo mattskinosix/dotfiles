@@ -22,11 +22,13 @@ require("lazy").setup({
         vim.fn["firenvim#install"](0)
     end,
   },
+  { 'jbyuki/quickmath.nvim' },
   {'mg979/vim-visual-multi' },  
   { 'uga-rosa/translate.nvim' },
   { 'knubie/vim-kitty-navigator' },
   { 'mfussenegger/nvim-dap' },
   { 'Pocco81/dap-buddy.nvim' },
+  {'renerocksai/calendar-vim'},
   {
     'renerocksai/telekasten.nvim',
     dependencies = {'nvim-telescope/telescope.nvim'}
@@ -60,7 +62,15 @@ require("lazy").setup({
    { "nvim-telescope/telescope.nvim", tag = '0.1.2' },
    { "nvim-telescope/telescope-file-browser.nvim" },
    'voldikss/vim-browser-search',
-   {'akinsho/flutter-tools.nvim', dependencies = 'nvim-lua/plenary.nvim'},
+{
+        'akinsho/flutter-tools.nvim',
+        lazy = false,
+        dependencies = {
+                'nvim-lua/plenary.nvim',
+                'stevearc/dressing.nvim', -- optional for vim.ui.select
+        },
+        config = true,
+},
    { "nvim-telescope/telescope-media-files.nvim" },
   -- Add indentation guides even on blank lines
    { "lukas-reineke/indent-blankline.nvim", main = "ibl", opts = {} },
@@ -638,6 +648,9 @@ local function buffer_augroup(group, bufnr, cmds)
     vim.api.nvim_create_autocmd(event, vim.tbl_extend("keep", { group = group, buffer = bufnr }, cmd))
   end
 end
+
+
+vim.api.nvim_set_keymap('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer
 local on_attach = function(client, bufnr)
@@ -692,7 +705,13 @@ lspconfig.jdtls.setup{
 require("flutter-tools").setup{
   lsp = {
     on_attach = on_attach,
-    capabilities = capabilities 
+    capabilities = capabilities,
+    settings = {
+      showTodos = true,
+      completeFunctionCalls = true,
+      enableSnippets = true,
+      updateImportsOnRename = true, -- Whether to update imports and other directives when files are renamed. Required for `FlutterRename` command.
+    }
   }-- e.g. lsp_status capabilities
 }
 
@@ -781,12 +800,17 @@ vim.cmd[[filetype plugin indent on]]
 vim.cmd[[set expandtab]]
 vim.o.tabstop=2
 vim.o.softtabstop=2
-vim.o.shiftwidth=2
 
 vim.cmd[[set tabpagemax=10]]
 vim.cmd[[set nocompatible]]
 vim.cmd[[set number]]
 vim.cmd[[xnoremap p pgvy]]
+vim.g.VM_default_mappings = 0
+vim.g.VM_mouse_mappings = 1
+vim.g.VM_leader = ","
+vim.g.VM_maps = {}
+vim.g.VM_maps["Select Cursor Down"] = '<leader>j'      
+vim.g.VM_maps["Select Cursor Up"]   = '<leader>k'        
 
 
 -- ####################################################################################################################################################################################
