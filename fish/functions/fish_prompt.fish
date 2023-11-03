@@ -64,6 +64,3 @@ function __kubectl_context
 end
 
 
-function __export_paths
-  set -x HLPY_PYPI_PACKAGE_REGISTRY_URL https://dev-manjaro:FsoEk3pc9VLzSXFw-Ksp@gitlab.com/api/v4/groups/12095300/-/packages/pypi/simple
-end
