@@ -16,54 +16,7 @@ k9s:
     fullScreenLogs: false
     textWrap: false
     showTime: false
-  currentContext: arn:aws:eks:eu-west-1:659047492528:cluster/hlpy-eks-cluster-prod
-  currentCluster: arn:aws:eks:eu-west-1:659047492528:cluster/hlpy-eks-cluster-prod
   clusters:
-    arn:aws:eks:eu-west-1:659047492528:cluster/hlpy-eks-cluster-prod:
-      namespace:
-        active: all
-        lockFavorites: false
-        favorites:
-        - airflow
-        - hlpy
-        - all
-        - default
-      view:
-        active: pods
-      featureGates:
-        nodeShell: false
-      shellPod:
-        image: busybox:1.35.0
-        command: []
-        args: []
-        namespace: default
-        limits:
-          cpu: 100m
-          memory: 100Mi
-        labels: {}
-      portForwardAddress: localhost
-    arn:aws:eks:eu-west-1:659047492528:cluster/hlpy-eks-cluster-test:
-      namespace:
-        active: all
-        lockFavorites: false
-        favorites:
-        - hlpy
-        - all
-        - default
-      view:
-        active: pod
-      featureGates:
-        nodeShell: false
-      shellPod:
-        image: busybox:1.35.0
-        command: []
-        args: []
-        namespace: default
-        limits:
-          cpu: 100m
-          memory: 100Mi
-        labels: {}
-      portForwardAddress: localhost
     kind-kind:
       namespace:
         active: all
