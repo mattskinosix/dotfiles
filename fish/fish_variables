@@ -2,7 +2,6 @@
 # VERSION: 3.0
 SETUVAR --export ANDROID_HOME:/home/matteo/Android/Sdk/
 SETUVAR --export EDITOR:nvim
-SETUVAR --export HLPY_PYPI_PACKAGE_REGISTRY_URL:https\x3a//dev\x2dmanjaro\x3aFsoEk3pc9VLzSXFw\x2dKsp\x40gitlab\x2ecom/api/v4/groups/12095300/\x2d/packages/pypi/simple
 SETUVAR --export JAVA_HOME:/usr/lib/jvm/java\x2d17\x2dopenjdk/
 SETUVAR --export JDTLS_JVM_ARGS:\x2djavaagent\x3a/home/matteo/\x2econfig/nvim/dependencies/lombok\x2ejar
 SETUVAR --export KEYCLOAK_HOST:localhost
