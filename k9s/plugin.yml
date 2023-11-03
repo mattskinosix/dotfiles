@@ -1,0 +1,19 @@
+plugin:
+  # See https://k9scli.io/topics/plugins/
+  raw-logs-follow:
+    shortCut: Ctrl-L
+    description: kubectl logs -f
+    scopes:
+    - containers
+    command: kubectl
+    background: false
+    args:
+    - logs
+    - -f
+    - $POD
+    - -n
+    - $NAMESPACE
+    - --container
+    - $COL-NAME
+    - --context
+    - $CONTEXT
