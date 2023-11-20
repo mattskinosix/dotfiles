@@ -331,6 +331,15 @@ cmp.setup.cmdline(':', {
   })
 -- local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
 
+local has_words_before = function()
+  local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+  return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
+end
+
+local feedkey = function(key, mode)
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(key, true, true, true), mode, true)
+end
+
 cmp.setup {
   snippet = {
     expand = function(args)
@@ -338,15 +347,37 @@ cmp.setup {
     end,
   },
   mapping = {
-      ['<Up>'] = cmp.mapping.select_prev_item(),
-      ['<Down>'] = cmp.mapping.select_next_item(),
-      ['<C-Space>'] = cmp.mapping.complete(),
-      ['<C-e>'] = cmp.mapping.abort(),
-      ['<CR>'] = cmp.mapping.confirm({ select = true }),
+    -- ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+    ["<CR>"] = cmp.mapping({
+       i = function(fallback)
+         if cmp.visible() and cmp.get_active_entry() then
+           cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false })
+         else
+           fallback()
+         end
+       end,
+       s = cmp.mapping.confirm({ select = true }),
+       c = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
+     }),
+    ["<Tab>"] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_next_item()
+      elseif has_words_before() then
+        cmp.complete({ behavior = cmp.ConfirmBehavior.Replace, select = true })
+      else
+        fallback() -- The fallback function sends a already mapped key. In this case, it's probably `<Tab>`.
+      end
+    end, { "i", "s" }),
+    ["<S-Tab>"] = cmp.mapping(function()
+      if cmp.visible() then
+        cmp.select_prev_item()
+      end
+    end, { "i", "s" }),
   },
   sources = cmp.config.sources({
       { name = 'nvim_lsp', priority=30},
       { name = 'ultisnips', priority=25 }, -- For ultisnips users.
+      { name = 'buffer', priority=25 },
       { name = 'emoji', priority=15 },
       { name = 'path', priority=10 },
     }
@@ -637,7 +668,7 @@ local handlers =  {
 }
 
 local lspconfig = require('lspconfig')
-local servers = { 'pyright', 'rust_analyzer', 'tsserver', 'vuels', 'cssls', 'dockerls', 'yamlls', 'html', 'svelte', 'denols', 'pylsp'}
+local servers = { 'pyright', 'rust_analyzer', 'tsserver', 'cssls', 'dockerls', 'yamlls', 'html', 'svelte', 'denols', 'pylsp'}
 
 local function buffer_augroup(group, bufnr, cmds)
   vim.api.nvim_create_augroup(group, { clear = false })
@@ -689,6 +720,54 @@ for _, lsp in pairs(servers) do
     single_file_support = true,
   }
 end
+
+require'lspconfig'.volar.setup{
+  filetypes = {'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue', 'json'}
+}
+
+require'lspconfig'.vuels.setup{
+  on_attach=on_attach,
+  capabilities=capabilities,
+  root_dir = lspconfig.util.root_pattern("package.json", "vue.config.js"),
+  init_options = {
+  config = {
+    css = {},
+    emmet = {},
+    html = {
+      suggest = {}
+    },
+    javascript = {
+      format = {}
+    },
+    stylusSupremacy = {},
+    typescript = {
+      format = {}
+    },
+    vetur = {
+      completion = {
+        autoImport = true,
+        tagCasing = "kebab",
+        useScaffoldSnippets = true
+      },
+      format = {
+        defaultFormatter = {
+          js = "eslint",
+          ts = "eslint"
+        },
+        defaultFormatterOptions = {},
+        scriptInitialIndent = false,
+        styleInitialIndent = false
+      },
+      useWorkspaceDependencies = true,
+      validation = {
+        script = true,
+        style = true,
+        template = true
+      }
+    }
+  }
+}
+}
 
 lspconfig.jdtls.setup{
   cmd = { 'jdtls' },
@@ -800,6 +879,7 @@ vim.cmd[[filetype plugin indent on]]
 vim.cmd[[set expandtab]]
 vim.o.tabstop=2
 vim.o.softtabstop=2
+vim.o.shiftwidth=2
 
 vim.cmd[[set tabpagemax=10]]
 vim.cmd[[set nocompatible]]
