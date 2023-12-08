@@ -19,7 +19,7 @@ require("lazy").setup({
     lazy = not vim.g.started_by_firenvim,
     module = false,
     build = function()
-        vim.fn["firenvim#install"](0)
+      vim.fn["firenvim#install"](0)
     end,
   },
   { 'jbyuki/quickmath.nvim' },
@@ -36,7 +36,14 @@ require("lazy").setup({
   {
     'kyazdani42/nvim-tree.lua',
   },
-  { 'iamcco/markdown-preview.nvim', run = 'cd app && yarn install'},
+-- install without yarn or npm
+{
+    "iamcco/markdown-preview.nvim",
+    cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+    ft = { "markdown" },
+    build = function() vim.fn["mkdp#util#install"]() end,
+},
+
   {
     "NTBBloodbath/rest.nvim",
     dependencies = { "nvim-lua/plenary.nvim" },
@@ -49,67 +56,67 @@ require("lazy").setup({
       require("auto-save").setup {
         -- your config goes here
         -- or just leave it empty :)
-         }
+      }
     end,
-},
-   'rbong/vim-flog',
-   { 'tpope/vim-surround' },
-   'tpope/vim-fugitive', -- Git commands in nvim
-   'tpope/vim-commentary', -- "gc" to comment visual regions/lines
+  },
+  'rbong/vim-flog',
+  { 'tpope/vim-surround' },
+  'tpope/vim-fugitive', -- Git commands in nvim
+  'tpope/vim-commentary', -- "gc" to comment visual regions/lines
   -- UI to select things (files, grep results, open buffers...)
-   { "nvim-lua/plenary.nvim" },
-   { "nvim-lua/popup.nvim" },
-   { "nvim-telescope/telescope.nvim", tag = '0.1.2' },
-   { "nvim-telescope/telescope-file-browser.nvim" },
-   'voldikss/vim-browser-search',
-{
-        'akinsho/flutter-tools.nvim',
-        lazy = false,
-        dependencies = {
-                'nvim-lua/plenary.nvim',
-                'stevearc/dressing.nvim', -- optional for vim.ui.select
-        },
-        config = true,
-},
-   { "nvim-telescope/telescope-media-files.nvim" },
+  { "nvim-lua/plenary.nvim" },
+  { "nvim-lua/popup.nvim" },
+  { "nvim-telescope/telescope.nvim", tag = '0.1.2' },
+  { "nvim-telescope/telescope-file-browser.nvim" },
+  'voldikss/vim-browser-search',
+  {
+    'akinsho/flutter-tools.nvim',
+    lazy = false,
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'stevearc/dressing.nvim', -- optional for vim.ui.select
+    },
+    config = true,
+  },
+  { "nvim-telescope/telescope-media-files.nvim" },
   -- Add indentation guides even on blank lines
-   { "lukas-reineke/indent-blankline.nvim", main = "ibl", opts = {} },
+  { "lukas-reineke/indent-blankline.nvim", main = "ibl", opts = {} },
   -- Add git related info in the signs columns and popups
-   { 'lewis6991/gitsigns.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
+  { 'lewis6991/gitsigns.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
   -- Highlight, edit, and navigate code using a fast incremental parsing library
   ({"petertriho/cmp-git", dependencies = "nvim-lua/plenary.nvim"}),
-   { 'SirVer/ultisnips' },
-   { 'honza/vim-snippets' },
-   {
-        "hrsh7th/nvim-cmp",
-        dependencies = {
-          "hrsh7th/cmp-buffer",
-          "hrsh7th/cmp-nvim-lsp",
-          "quangnguyen30192/cmp-nvim-ultisnips",
-          "hrsh7th/cmp-nvim-lua",
-          "octaltree/cmp-look",
-          "hrsh7th/cmp-path",
-          "f3fora/cmp-spell",
-          "hrsh7th/cmp-emoji",
-          "ray-x/cmp-treesitter",
-          "uga-rosa/cmp-dictionary",
-          "hrsh7th/cmp-cmdline",
-          "hrsh7th/cmp-nvim-lsp-document-symbol",
-        },
-      },
-   'nvim-treesitter/nvim-treesitter',
-   'nvim-treesitter/nvim-treesitter-textobjects',
-   'neovim/nvim-lspconfig', -- Collection of configurations for built-in LSP client
-   'windwp/nvim-autopairs',
-   'tpope/vim-dadbod',
-   'kristijanhusak/vim-dadbod-ui',
-   'kristijanhusak/vim-dadbod-completion',
+  { 'SirVer/ultisnips' },
+  { 'honza/vim-snippets' },
+  {
+    "hrsh7th/nvim-cmp",
+    dependencies = {
+      "hrsh7th/cmp-buffer",
+      "hrsh7th/cmp-nvim-lsp",
+      "quangnguyen30192/cmp-nvim-ultisnips",
+      "hrsh7th/cmp-nvim-lua",
+      "octaltree/cmp-look",
+      "hrsh7th/cmp-path",
+      "f3fora/cmp-spell",
+      "hrsh7th/cmp-emoji",
+      "ray-x/cmp-treesitter",
+      "uga-rosa/cmp-dictionary",
+      "hrsh7th/cmp-cmdline",
+      "hrsh7th/cmp-nvim-lsp-document-symbol",
+    },
+  },
+  'nvim-treesitter/nvim-treesitter',
+  'nvim-treesitter/nvim-treesitter-textobjects',
+  'neovim/nvim-lspconfig', -- Collection of configurations for built-in LSP client
+  'windwp/nvim-autopairs',
+  'tpope/vim-dadbod',
+  'kristijanhusak/vim-dadbod-ui',
+  'kristijanhusak/vim-dadbod-completion',
   -- using packer.nvim
   {'akinsho/bufferline.nvim', version = "*", dependencies = 'kyazdani42/nvim-web-devicons'},
   'prettier/vim-prettier',
   {
-      "rcarriga/nvim-notify",
-      event = "VimEnter",
+    "rcarriga/nvim-notify",
+    event = "VimEnter",
   },
   -- Lua
   { "RRethy/vim-illuminate" },
@@ -356,8 +363,6 @@ cmp.setup {
            fallback()
          end
        end,
-       s = cmp.mapping.confirm({ select = true }),
-       c = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
      }),
     ["<Tab>"] = cmp.mapping(function(fallback)
       if cmp.visible() then
@@ -373,6 +378,11 @@ cmp.setup {
         cmp.select_prev_item()
       end
     end, { "i", "s" }),
+    ['<Up>'] = cmp.mapping.select_prev_item(),
+    ['<Down>'] = cmp.mapping.select_next_item(),
+    ['<C-Space>'] = cmp.mapping.complete(),
+    ['<C-e>'] = cmp.mapping.abort(),
+    ['<CR>'] = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false }),
   },
   sources = cmp.config.sources({
       { name = 'nvim_lsp', priority=30},
@@ -573,7 +583,6 @@ require('nvim-treesitter.configs').setup {
 -- ####################################################################################################################################################################################
 
 --Add leader shortcuts
-
 vim.api.nvim_set_keymap('v', '<C-c>', [["+y]], { noremap = false, silent = true })
 vim.api.nvim_set_keymap('v', '<leader>p', [["+p]], { noremap = false, silent = true })
 vim.api.nvim_set_keymap('v', '<leader>pt', [[<cmd>BufferLineTogglePin<CR>]], { noremap = false, silent = true })
@@ -638,8 +647,8 @@ vim.api.nvim_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<C
 vim.api.nvim_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
 vim.api.nvim_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
 vim.api.nvim_set_keymap('n', '<space>q', '<cmd>lua vim.diagnostic.setloclist()<CR>', opts)
-
-
+vim.api.nvim_set_keymap('n', '<C-LeftMouse>', '<Plug>(VM-Mouse-Column)', opts)
+vim.api.nvim_set_keymap('n', '<C-RightMouse>', '<Plug>(VM-Mouse-Cursor)', opts)
 
 
 -- ####################################################################################################################################################################################
@@ -668,7 +677,7 @@ local handlers =  {
 }
 
 local lspconfig = require('lspconfig')
-local servers = { 'pyright', 'rust_analyzer', 'tsserver', 'cssls', 'dockerls', 'yamlls', 'html', 'svelte', 'denols', 'pylsp'}
+local servers = { 'pyright', 'rust_analyzer', 'tsserver', 'cssls', 'dockerls', 'yamlls', 'html', 'svelte', 'denols', 'pylsp', 'terraform_lsp'}
 
 local function buffer_augroup(group, bufnr, cmds)
   vim.api.nvim_create_augroup(group, { clear = false })
@@ -885,12 +894,8 @@ vim.cmd[[set tabpagemax=10]]
 vim.cmd[[set nocompatible]]
 vim.cmd[[set number]]
 vim.cmd[[xnoremap p pgvy]]
-vim.g.VM_default_mappings = 0
 vim.g.VM_mouse_mappings = 1
 vim.g.VM_leader = ","
-vim.g.VM_maps = {}
-vim.g.VM_maps["Select Cursor Down"] = '<leader>j'      
-vim.g.VM_maps["Select Cursor Up"]   = '<leader>k'        
 
 
 -- ####################################################################################################################################################################################
