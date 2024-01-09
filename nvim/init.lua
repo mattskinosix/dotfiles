@@ -1,4 +1,4 @@
--- Install packer
+   -- Install packer
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
@@ -14,6 +14,17 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
   -- lazy.nvim:
+  { 'https://gitlab.com/gitlab-org/editor-extensions/gitlab.vim.git',
+    ft = { 'go', 'javascript', 'python', 'ruby', 'java', 'terraform', 'kotlin' }, -- Activate when a supported filetype is open
+    cond = function()
+      return vim.env.GITLAB_TOKEN ~= nil and vim.env.GITLAB_TOKEN ~= '' -- Only activate is token is present in environment variable (remove to use interactive workflow)
+    end,
+    opts = {
+      statusline = {
+        enabled = true, -- Hook into the builtin statusline to indicate the status of the GitLab Duo Code Suggestions integration
+      },
+    },
+  },
   {
     "glacambre/firenvim",
     lazy = not vim.g.started_by_firenvim,
@@ -28,7 +39,9 @@ require("lazy").setup({
   { 'knubie/vim-kitty-navigator' },
   { 'mfussenegger/nvim-dap' },
   { 'Pocco81/dap-buddy.nvim' },
-  {'renerocksai/calendar-vim'},
+  { 'renerocksai/calendar-vim' },
+  { 'hrsh7th/vim-vsnip'},
+  { 'hrsh7th/vim-vsnip-integ' },
   {
     'renerocksai/telekasten.nvim',
     dependencies = {'nvim-telescope/telescope.nvim'}
@@ -85,8 +98,6 @@ require("lazy").setup({
   { 'lewis6991/gitsigns.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
   -- Highlight, edit, and navigate code using a fast incremental parsing library
   ({"petertriho/cmp-git", dependencies = "nvim-lua/plenary.nvim"}),
-  { 'SirVer/ultisnips' },
-  { 'honza/vim-snippets' },
   {
     "hrsh7th/nvim-cmp",
     dependencies = {
@@ -204,7 +215,6 @@ require("rest-nvim").setup({
   -- Highlight request on run
   highlight = {
     enabled = true,
-    timeout = 150,
   },
   result = {
     -- toggle showing URL, HTTP info, headers at top the of result window
@@ -280,8 +290,6 @@ dap.configurations.python = {
   },
 }
 
-
-
 -- ####################################################################################################################################################################################
 --                                                                        BLANKLINE
 -- ####################################################################################################################################################################################
@@ -317,27 +325,11 @@ require("nvim-tree").setup()
 -- ####################################################################################################################################################################################
 --                                                                           CMP
 -- ####################################################################################################################################################################################
-
+--
 local cmp = require 'cmp'
--- nvim-cmp setup
-cmp.setup.cmdline(':', {
-  mapping = cmp.mapping.preset.cmdline(),
-  sources = cmp.config.sources({
-    { name = 'path' }
-  }, {
-    { name = 'cmdline' }
-  })
-})
-
--- lsp_document_symbols
-  cmp.setup.cmdline('/', {
-    mapping = cmp.mapping.preset.cmdline(),
-    sources = {
-      { name = 'buffer' }
-    }
-  })
 -- local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
 
+vim.opt.completeopt = {'menu', 'menuone', 'noselect'}
 local has_words_before = function()
   local line, col = unpack(vim.api.nvim_win_get_cursor(0))
   return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
@@ -350,20 +342,23 @@ end
 cmp.setup {
   snippet = {
     expand = function(args)
-      vim.fn["UltiSnips#Anon"](args.body)
+      vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
+      -- require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
+      -- require('snippy').expand_snippet(args.body) -- For `snippy` users.
+      vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
     end,
   },
-  mapping = {
+  mapping = cmp.mapping.preset.insert({
     -- ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
     ["<CR>"] = cmp.mapping({
-       i = function(fallback)
-         if cmp.visible() and cmp.get_active_entry() then
-           cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false })
-         else
-           fallback()
-         end
-       end,
-     }),
+      i = function(fallback)
+        if cmp.visible() and cmp.get_active_entry() then
+          cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false })
+        else
+          fallback()
+        end
+      end,
+    }),
     ["<Tab>"] = cmp.mapping(function(fallback)
       if cmp.visible() then
         cmp.select_next_item()
@@ -383,22 +378,47 @@ cmp.setup {
     ['<C-Space>'] = cmp.mapping.complete(),
     ['<C-e>'] = cmp.mapping.abort(),
     ['<CR>'] = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false }),
-  },
-  sources = cmp.config.sources({
-      { name = 'nvim_lsp', priority=30},
-      { name = 'ultisnips', priority=25 }, -- For ultisnips users.
-      { name = 'buffer', priority=25 },
-      { name = 'emoji', priority=15 },
-      { name = 'path', priority=10 },
-    }
-  )
+  }),
+     sources = cmp.config.sources(
+       {
+         { name = 'nvim_lsp' },
+         { name = 'vsnip' },
+         { name = 'omni' },
+         { name = 'ultisnips' }, -- For ultisnips users.
+       },
+       {
+         { name = 'buffer' },
+         { name = 'path' }
+       })
 }
 
 cmp.setup.filetype('gitcommit', {
-    sources = cmp.config.sources({
-      { name = 'cmp_git' }, -- You can specify the `cmp_git` source if you were installed it.
-    })
-  })
+ sources = cmp.config.sources({
+   { name = 'git' }, -- You can specify the `git` source if [you were installed it](https://github.com/petertriho/cmp-git).
+ }, {
+     { name = 'buffer' },
+   })
+})
+
+-- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
+cmp.setup.cmdline({ '/', '?' }, {
+ mapping = cmp.mapping.preset.cmdline(),
+ sources = {
+   { name = 'buffer' }
+ }
+})
+
+-- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
+cmp.setup.cmdline(':', {
+ mapping = cmp.mapping.preset.cmdline(),
+ sources = cmp.config.sources({
+   { name = 'path' }
+ }, {
+     { name = 'cmdline' }
+   })
+})
+
+
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
 -- ####################################################################################################################################################################################
@@ -611,6 +631,7 @@ vim.api.nvim_set_keymap('n', '<leader>so', [[<cmd>lua require('telescope.builtin
 vim.api.nvim_set_keymap('n', '<leader>?', [[<cmd>lua require('telescope.builtin').oldfiles()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>ws', [[<cmd>lua require("telescope").extensions.arecibo.websearch()<CR>]], { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', '<leader>fb', [[<cmd>Telescope file_browser<CR>]], { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>cs', [[<Plug>(GitLabToggleCodeSuggestions)]], { noremap = true, silent = true })
 
 vim.api.nvim_set_keymap('n', '<leader>ci', [[<Plug>BujoAddnormal]], { noremap = false, silent = true })
 
@@ -677,7 +698,7 @@ local handlers =  {
 }
 
 local lspconfig = require('lspconfig')
-local servers = { 'pyright', 'rust_analyzer', 'tsserver', 'cssls', 'dockerls', 'yamlls', 'html', 'svelte', 'denols', 'pylsp', 'terraform_lsp'}
+local servers = {'rust_analyzer', 'tsserver', 'cssls', 'dockerls', 'yamlls', 'html', 'svelte', 'denols', 'pyright', 'terraform_lsp'}
 
 local function buffer_augroup(group, bufnr, cmds)
   vim.api.nvim_create_augroup(group, { clear = false })
@@ -897,7 +918,6 @@ vim.cmd[[xnoremap p pgvy]]
 vim.g.VM_mouse_mappings = 1
 vim.g.VM_leader = ","
 
-
 -- ####################################################################################################################################################################################
 --                                                                           autosave
 -- ####################################################################################################################################################################################
@@ -949,6 +969,3 @@ function _G.set_terminal_keymaps()
 end
 
 vim.cmd('autocmd! TermOpen term://* lua set_terminal_keymaps()')
-
-require'switch_case'
-vim.api.nvim_set_keymap('n', '<Leader>s', '<cmd>lua require("switch_case").switch_case()<CR>', {noremap = true, silent = true})
