@@ -13,18 +13,6 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-  -- lazy.nvim:
-  { 'https://gitlab.com/gitlab-org/editor-extensions/gitlab.vim.git',
-    ft = { 'go', 'javascript', 'python', 'ruby', 'java', 'terraform', 'kotlin', 'typescript' }, -- Activate when a supported filetype is open
-    cond = function()
-      return vim.env.GITLAB_TOKEN ~= nil and vim.env.GITLAB_TOKEN ~= '' -- Only activate is token is present in environment variable (remove to use interactive workflow)
-    end,
-    opts = {
-      statusline = {
-        enabled = true, -- Hook into the builtin statusline to indicate the status of the GitLab Duo Code Suggestions integration
-      },
-    },
-  },
   {
     "glacambre/firenvim",
     lazy = not vim.g.started_by_firenvim,
@@ -33,17 +21,31 @@ require("lazy").setup({
       vim.fn["firenvim#install"](0)
     end,
   },
-  { 'jbyuki/quickmath.nvim' },
+  {
+  'nvim-orgmode/orgmode',
+  event = 'VeryLazy',
+  ft = { 'org' },
+  config = function()
+    -- Setup orgmode
+    require('orgmode').setup({
+      org_agenda_files = '~/orgfiles/**/*',
+      org_default_notes_file = '~/orgfiles/refile.org',
+    })
+
+    -- NOTE: If you are using nvim-treesitter with ~ensure_installed = "all"~ option
+    -- add ~org~ to ignore_install
+    require('nvim-treesitter.configs').setup({
+      ensure_installed = 'all',
+      ignore_install = { 'org' },
+    })
+  end,
+},
   {'mg979/vim-visual-multi' },  
   { 'uga-rosa/translate.nvim' },
   { 'knubie/vim-kitty-navigator' },
   { 'mfussenegger/nvim-dap' },
   { 'Pocco81/dap-buddy.nvim' },
   { 'renerocksai/calendar-vim' },
-  { 'hrsh7th/vim-vsnip'},
-  { 'hrsh7th/vim-vsnip-integ' },
-  {'dcampos/nvim-snippy'},
-  {'dcampos/cmp-snippy'},
   {
     'renerocksai/telekasten.nvim',
     dependencies = {'nvim-telescope/telescope.nvim'}
@@ -72,7 +74,6 @@ require("lazy").setup({
     require("rest-nvim").setup()
   end,
 },
-  { "vim-test/vim-test" },
   { "ellisonleao/gruvbox.nvim" },
   {
     "Pocco81/auto-save.nvim",
@@ -104,8 +105,6 @@ require("lazy").setup({
   },
   { "nvim-telescope/telescope-media-files.nvim" },
   -- Add indentation guides even on blank lines
-  { "lukas-reineke/indent-blankline.nvim", main = "ibl", opts = {} },
-  -- Add git related info in the signs columns and popups
   { 'lewis6991/gitsigns.nvim', dependencies = { 'nvim-lua/plenary.nvim' } },
   -- Highlight, edit, and navigate code using a fast incremental parsing library
   ({"petertriho/cmp-git", dependencies = "nvim-lua/plenary.nvim"}),
@@ -118,11 +117,8 @@ require("lazy").setup({
       "octaltree/cmp-look",
       "hrsh7th/cmp-path",
       "f3fora/cmp-spell",
-      "hrsh7th/cmp-emoji",
       "ray-x/cmp-treesitter",
-      "uga-rosa/cmp-dictionary",
       "hrsh7th/cmp-cmdline",
-      "hrsh7th/cmp-nvim-lsp-document-symbol",
     },
   },
   'nvim-treesitter/nvim-treesitter',
@@ -156,18 +152,17 @@ require("lazy").setup({
 
 
 vim.notify = require "notify"
-require("ibl").setup()
  
 require('dashboard').setup {
   config = { 
-header = {   
-    ' ▓███████████████▓   ▒▓██████▓▒ ▒▓████████▓▒▒▓████████▓▒ ▒▓███████▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓███████▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▓███████████████▓   ',
-    '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒    ▒▓█▓▒░       ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
-    '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒    ▒▓█▓▒░       ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
-    '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓████████▓▒   ▒▓█▓▒       ▒▓█▓▒     ▒▓██████▓▒  ▒▓███████▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
-    '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒           ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▓█▓▒   ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
-    '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒           ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▓█▓▒   ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
-    '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒    ▒▓███████▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒    ▒▓██▓▒    ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
+    header = {   
+      ' ▓███████████████▓   ▒▓██████▓▒ ▒▓████████▓▒▒▓████████▓▒ ▒▓███████▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓███████▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▓███████████████▓   ',
+      '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒    ▒▓█▓▒░       ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
+      '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒    ▒▓█▓▒░       ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
+      '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓████████▓▒   ▒▓█▓▒       ▒▓█▓▒     ▒▓██████▓▒  ▒▓███████▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
+      '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒           ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▓█▓▒   ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
+      '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒           ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▓█▓▒   ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
+      '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒    ▒▓███████▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒    ▒▓██▓▒    ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
     }
   }
 }
@@ -179,7 +174,7 @@ require("trouble").setup {
   height = 10, -- height of the trouble list when position is top or bottom
   width = 50, -- width of the list when position is left or right
   icons = true, -- use devicons for filenames
-  mode = "document_diagnostics", -- "workspace_diagnostics", "document_diagnostics", "quickfix", "lsp_references", "loclist"
+  mode = "workspace_diagnostics", -- "workspace_diagnostics", "document_diagnostics", "quickfix", "lsp_references", "loclist"
   fold_open = "", -- icon used for open folds
   fold_closed = "", -- icon used for closed folds
   group = true, -- group results by file
@@ -288,7 +283,6 @@ dap.configurations.python = {
 --                                                                        BLANKLINE
 -- ####################################################################################################################################################################################
 
-
 -- ####################################################################################################################################################################################
 --                                                                          DBUI
 -- ####################################################################################################################################################################################
@@ -323,7 +317,7 @@ require("nvim-tree").setup()
 local cmp = require 'cmp'
 -- local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
 
-vim.opt.completeopt = {'menu', 'menuone', 'noselect'}
+--vim.opt.completeopt = {'menu', 'menuone', 'noselect'}
 local has_words_before = function()
   local line, col = unpack(vim.api.nvim_win_get_cursor(0))
   return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
@@ -336,7 +330,7 @@ end
 cmp.setup {
   snippet = {
     expand = function(args)
-      require 'snippy'.expand_snippet(args.body)
+      vim.snippet.expand(args.body)
     end
   },
   mapping = cmp.mapping.preset.insert({
@@ -375,6 +369,8 @@ cmp.setup {
          { name = 'nvim_lsp' },
          { name = 'snippy' },
          { name = 'omni' },
+         { name = 'orgmode' },
+
          },{{ name = 'path' }}-- For ultisnips users.
        )
 }
@@ -472,13 +468,6 @@ vim.g.netrw_localcopydircmd='cp -r'
 
 -- Gitsigns
 require('gitsigns').setup {
-  signs = {
-    add = { hl = 'GitGutterAdd', text = '+' },
-    change = { hl = 'GitGutterChange', text = '~' },
-    delete = { hl = 'GitGutterDelete', text = '_' },
-    topdelete = { hl = 'GitGutterDelete', text = '‾' },
-    changedelete = { hl = 'GitGutterChange', text = '~' },
-  },
 }
 -- ####################################################################################################################################################################################
 --                                                                           TELESCOPE
@@ -685,7 +674,7 @@ local handlers =  {
 }
 
 local lspconfig = require('lspconfig')
-local servers = {'rust_analyzer',  'dockerls', 'yamlls', 'html', 'pyright', 'terraform_lsp', 'denols', 'eslint', 'volar', 'kotlin_language_server'}
+local servers = {'rust_analyzer',  'dockerls', 'yamlls', 'html',  'terraform_lsp', 'denols', 'kotlin_language_server', 'pyright', 'vuels', 'tsserver' }
 
 local function buffer_augroup(group, bufnr, cmds)
   vim.api.nvim_create_augroup(group, { clear = false })
@@ -733,9 +722,36 @@ for _, lsp in pairs(servers) do
   lspconfig[lsp].setup {
     on_attach = on_attach,
     capabilities=capabilities,
-    single_file_support = true,
   }
 end
+
+
+lspconfig.pylsp.setup{
+  settings = {
+    pylsp = {
+      plugins = {
+        rope_autoimport = {
+          enabled = true
+        }
+      }
+    }
+  },
+  on_attach=on_attach,
+  capabilities=capabilities,
+}
+require'lspconfig'.volar.setup{
+
+  --init_options = {
+  --  typescript = {
+  --    --tsdk = '/path/to/.npm/lib/node_modules/typescript/lib'
+  --    -- Alternative location if installed as root:
+  --    tsdk = '/usr/lib/node_modules/typescript/lib'
+  --  }
+  --},
+  filetypes = {'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue', 'json'},
+  capabilities=capabilities,
+  on_attach=on_attach
+}
 
 
 lspconfig.jdtls.setup{
@@ -785,12 +801,10 @@ end
 -- You will likely want to reduce updatetime which affects CursorHold
 -- note: this setting is global and should be set only once
 vim.cmd [[autocmd! CursorHold,CursorHoldI * lua vim.diagnostic.open_float()]]
-vim.diagnostic.config({
-  virtual_text = true,
-  signs = true ,
-  underline = true,
-  severity_sort = true,
-})
+
+
+
+
 -- ####################################################################################################################################################################################
 --                                                                           FLUTTER
 -- ####################################################################################################################################################################################
@@ -869,19 +883,11 @@ vim.g.VM_leader = ","
 require('auto-save').setup(
   {
     enabled = true,
-    execution_message = {
-      message = function() -- message to print on save
-        return ("AutoSave: saved at " .. vim.fn.strftime("%H:%M:%S"))
-      end,
-      dim = 0.18, -- dim the color of `message`
-      cleaning_interval = 1250, -- (milliseconds) automatically clean MsgArea after displaying `message`. See :h MsgArea
-    },
     events = {"InsertLeave"},
     conditions = {
       exists = true,
       modifiable = true
     },
-    write_all_buffers = true,
     on_off_commands = true,
   }
 )
