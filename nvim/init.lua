@@ -13,17 +13,8 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-  -- lazy.nvim:
-  { 'https://gitlab.com/gitlab-org/editor-extensions/gitlab.vim.git',
-    ft = { 'go', 'javascript', 'python', 'ruby', 'java', 'terraform', 'kotlin', 'typescript' }, -- Activate when a supported filetype is open
-    cond = function()
-      return vim.env.GITLAB_TOKEN ~= nil and vim.env.GITLAB_TOKEN ~= '' -- Only activate is token is present in environment variable (remove to use interactive workflow)
-    end,
-    opts = {
-      statusline = {
-        enabled = true, -- Hook into the builtin statusline to indicate the status of the GitLab Duo Code Suggestions integration
-      },
-    },
+  {
+    "LunarVim/bigfile.nvim",
   },
   {
     "glacambre/firenvim",
@@ -48,7 +39,6 @@ require("lazy").setup({
     -- add ~org~ to ignore_install
     require('nvim-treesitter.configs').setup({
       ensure_installed = 'all',
-      ignore_install = { 'org' },
     })
   end,
 },
@@ -72,20 +62,31 @@ require("lazy").setup({
     ft = { "markdown" },
     build = function() vim.fn["mkdp#util#install"]() end,
 },
+ {
+    "vhyrro/luarocks.nvim",
+    branch = "go-away-python",
+    opts = {
+      rocks = { "lua-curl", "nvim-nio", "mimetypes", "xml2lua" }, -- Specify LuaRocks packages to install
+    },
+  },
   {
-  "vhyrro/luarocks.nvim",
-  config = function()
-    require("luarocks-nvim").setup({})
-  end,
-},
-{
-  "rest-nvim/rest.nvim",
-  ft = "http",
-  dependencies = { "luarocks.nvim" },
-  config = function()
-    require("rest-nvim").setup()
-  end,
-},
+    "rest-nvim/rest.nvim",
+    event = "VeryLazy",
+    ft = { "http" },
+    dependencies = {
+      {
+        "luarocks.nvim",
+      },
+    },
+    config = function()
+      require("rest-nvim").setup()
+      require("telescope").load_extension("rest")
+    end,
+    keys = {
+      { "<leader>rr", "<cmd>Rest run<cr>", desc = "Run rest http request under cursor" },
+      { "<leader>re", "<cmd>Telescope rest select_env<cr>", desc = "Select environment file for rest testing" },
+    },
+  },
   { "ellisonleao/gruvbox.nvim" },
   {
     "Pocco81/auto-save.nvim",
@@ -382,7 +383,6 @@ cmp.setup {
          { name = 'snippy' },
          { name = 'omni' },
          { name = 'orgmode' },
-        {name = "buffer"},
 
          },{{ name = 'path' }}-- For ultisnips users.
        )
@@ -481,13 +481,6 @@ vim.g.netrw_localcopydircmd='cp -r'
 
 -- Gitsigns
 require('gitsigns').setup {
-  signs = {
-    add = { hl = 'GitGutterAdd', text = '+' },
-    change = { hl = 'GitGutterChange', text = '~' },
-    delete = { hl = 'GitGutterDelete', text = '_' },
-    topdelete = { hl = 'GitGutterDelete', text = '‾' },
-    changedelete = { hl = 'GitGutterChange', text = '~' },
-  },
 }
 -- ####################################################################################################################################################################################
 --                                                                           TELESCOPE
@@ -538,17 +531,27 @@ require('telescope').setup {
 -- ####################################################################################################################################################################################
 --                                                                           TREESITTER
 -- ####################################################################################################################################################################################
--- Treesitter configuration
--- Parsers must be installed manually via :TSInstall
+
+
 require('nvim-treesitter.configs').setup {
   highlight = {
     enable = true, -- false will disable the whole extension
+    disable = function(lang, bufnr) -- Disable in large C++ buffers
+        return vim.api.nvim_buf_line_count(bufnr) > 5000
+    end,
   },
   indent = {
-    enable = true
+    enable = true,
+    disable = function(lang, bufnr) -- Disable in large C++ buffers
+        return vim.api.nvim_buf_line_count(bufnr) > 5000
+    end,
   },
   incremental_selection = {
-    enable = true,  
+    enable = true,
+    disable = function(lang, bufnr) -- Disable in large C++ buffers
+        return vim.api.nvim_buf_line_count(bufnr) > 5000
+    end,
+  
     autotag = {
       enable = true,
     },
@@ -557,39 +560,6 @@ require('nvim-treesitter.configs').setup {
       node_incremental = 'grn',
       scope_incremental = 'grc',
       node_decremental = 'grm',
-    },
-  },
-  textobjects = {
-    select = {
-      enable = true,
-      lookahead = true, -- Automatic/ally jump forward to textobj, similar to targets.vim
-      keymaps = {
-        -- You can use the capture groups defined in textobjects.scm
-        ['af'] = '@function.outer',
-        ['if'] = '@function.inner',
-        ['ac'] = '@class.outer',
-        ['ic'] = '@class.inner',
-      },
-    },
-    move = {
-      enable = true,
-      set_jumps = true, -- whether to set jumps in the jumplist
-      goto_next_start = {
-        [']m'] = '@function.outer',
-        [']]'] = '@class.outer',
-      },
-      goto_next_end = {
-        [']M'] = '@function.outer',
-        [']['] = '@class.outer',
-      },
-      goto_previous_start = {
-        ['[m'] = '@function.outer',
-        ['[['] = '@class.outer',
-      },
-      goto_previous_end = {
-        ['[M'] = '@function.outer',
-        ['[]'] = '@class.outer',
-      },
     },
   },
 }
@@ -694,7 +664,7 @@ local handlers =  {
 }
 
 local lspconfig = require('lspconfig')
-local servers = {'rust_analyzer',  'dockerls', 'yamlls', 'html',  'terraform_lsp', 'denols', 'kotlin_language_server', 'pyright'}
+local servers = {'rust_analyzer',  'dockerls', 'yamlls', 'html',  'terraform_lsp', 'denols', 'kotlin_language_server', 'pyright', 'vuels', 'ts_ls' }
 
 local function buffer_augroup(group, bufnr, cmds)
   vim.api.nvim_create_augroup(group, { clear = false })
@@ -759,8 +729,15 @@ lspconfig.pylsp.setup{
   on_attach=on_attach,
   capabilities=capabilities,
 }
-
 require'lspconfig'.volar.setup{
+
+  --init_options = {
+  --  typescript = {
+  --    --tsdk = '/path/to/.npm/lib/node_modules/typescript/lib'
+  --    -- Alternative location if installed as root:
+  --    tsdk = '/usr/lib/node_modules/typescript/lib'
+  --  }
+  --},
   filetypes = {'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue', 'json'},
   capabilities=capabilities,
   on_attach=on_attach
