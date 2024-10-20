@@ -45,7 +45,6 @@ function fish_prompt
   __current_path
   __git_status
   __kubectl_context
-  __export_paths
   echo -e ''
   echo (set_color white)"╰─"(set_color --bold white)"\$ "(set_color normal)
 end
