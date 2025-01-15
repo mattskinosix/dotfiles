@@ -14,6 +14,40 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
   {
+    "epwalsh/obsidian.nvim",
+    version = "*",  -- recommended, use latest release instead of latest commit
+    lazy = true,
+    ft = "markdown",
+    -- Replace the above line with this if you only want to load obsidian.nvim for markdown files in your vault:
+    -- event = {
+    --   -- If you want to use the home shortcut '~' here you need to call 'vim.fn.expand'.
+    --   -- E.g. "BufReadPre " .. vim.fn.expand "~" .. "/my-vault/*.md"
+    --   -- refer to `:h file-pattern` for more examples
+    --   "BufReadPre path/to/my-vault/*.md",
+    --   "BufNewFile path/to/my-vault/*.md",
+    -- },
+    dependencies = {
+      -- Required.
+      "nvim-lua/plenary.nvim",
+
+      -- see below for full list of optional dependencies 👇
+    },
+    opts = {
+      workspaces = {
+        {
+          name = "work",
+          path = "~/EBW/docs",
+        },
+        {
+          name = "personal it docs",
+          path = "~/IT_DOC",
+        },
+      },
+
+      -- see below for full list of options 👇
+    },
+  },
+  {
     "LunarVim/bigfile.nvim",
   },
   {
@@ -25,23 +59,18 @@ require("lazy").setup({
     end,
   },
   {
-  'nvim-orgmode/orgmode',
-  event = 'VeryLazy',
-  ft = { 'org' },
-  config = function()
-    -- Setup orgmode
-    require('orgmode').setup({
-      org_agenda_files = '~/orgfiles/**/*',
-      org_default_notes_file = '~/orgfiles/refile.org',
-    })
+    'nvim-orgmode/orgmode',
+    event = 'VeryLazy',
+    ft = { 'org' },
+    config = function()
+      -- Setup orgmode
+      require('orgmode').setup({
+        org_agenda_files = '~/orgfiles/**/*',
+        org_default_notes_file = '~/orgfiles/refile.org',
+      })
 
-    -- NOTE: If you are using nvim-treesitter with ~ensure_installed = "all"~ option
-    -- add ~org~ to ignore_install
-    require('nvim-treesitter.configs').setup({
-      ensure_installed = 'all',
-    })
-  end,
-},
+    end,
+  },
   {'mg979/vim-visual-multi' },  
   { 'uga-rosa/translate.nvim' },
   { 'knubie/vim-kitty-navigator' },
@@ -55,19 +84,21 @@ require("lazy").setup({
   {
     'kyazdani42/nvim-tree.lua',
   },
--- install without yarn or npm
-{
-    "iamcco/markdown-preview.nvim",
-    cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
-    ft = { "markdown" },
-    build = function() vim.fn["mkdp#util#install"]() end,
-},
- {
+  -- install without yarn or npm
+  {
+    "toppair/peek.nvim",
+    event = { "VeryLazy" },
+    build = "deno task --quiet build:fast",
+    config = function()
+        require("peek").setup()
+        vim.api.nvim_create_user_command("PeekOpen", require("peek").open, {})
+        vim.api.nvim_create_user_command("PeekClose", require("peek").close, {})
+    end,
+  },
+  {
     "vhyrro/luarocks.nvim",
-    branch = "go-away-python",
-    opts = {
-      rocks = { "lua-curl", "nvim-nio", "mimetypes", "xml2lua" }, -- Specify LuaRocks packages to install
-    },
+    priority = 1000, -- Very high priority is required, luarocks.nvim should run as the first plugin in your config.
+    config = true,
   },
   {
     "rest-nvim/rest.nvim",
@@ -130,17 +161,17 @@ require("lazy").setup({
       "octaltree/cmp-look",
       "hrsh7th/cmp-path",
       "f3fora/cmp-spell",
-      "ray-x/cmp-treesitter",
       "hrsh7th/cmp-cmdline",
     },
   },
-  'nvim-treesitter/nvim-treesitter',
-  'nvim-treesitter/nvim-treesitter-textobjects',
-  'neovim/nvim-lspconfig', -- Collection of configurations for built-in LSP client
-  'windwp/nvim-autopairs',
-  'tpope/vim-dadbod',
-  'kristijanhusak/vim-dadbod-ui',
-  'kristijanhusak/vim-dadbod-completion',
+  {
+    "nvim-treesitter/nvim-treesitter",
+  },
+  { 'neovim/nvim-lspconfig'}, -- Collection of configurations for built-in LSP client
+  { 'windwp/nvim-autopairs'},
+  { 'tpope/vim-dadbod' },
+  { 'kristijanhusak/vim-dadbod-ui'}, 
+  { 'kristijanhusak/vim-dadbod-completion'},
   -- using packer.nvim
   {'akinsho/bufferline.nvim', version = "*", dependencies = 'kyazdani42/nvim-web-devicons'},
   'prettier/vim-prettier',
@@ -156,31 +187,58 @@ require("lazy").setup({
     dependencies = "kyazdani42/nvim-web-devicons",
   },
   {
-    'glepnir/dashboard-nvim',
+    'nvimdev/dashboard-nvim',
     event = 'VimEnter',
+    config = function()
+      require('dashboard').setup {
+        theme = 'hyper',
+        config = {
+          project = {
+            enable = false,
+            -- rest of project config
+          },
+          header = {   
+            ' ▓███████████████▓   ▒▓██████▓▒ ▒▓████████▓▒▒▓████████▓▒ ▒▓███████▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓███████▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▓███████████████▓   ', 
+            '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒    ▒▓█▓▒░       ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ', 
+            '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒    ▒▓█▓▒░       ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ', 
+            '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓████████▓▒   ▒▓█▓▒       ▒▓█▓▒     ▒▓██████▓▒  ▒▓███████▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ', 
+            '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒           ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▓█▓▒   ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ', 
+            '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒           ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▓█▓▒   ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ', 
+            '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒    ▒▓███████▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒    ▒▓██▓▒    ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ', 
+          },
+          shortcut = {
+            { desc = '󰊳 Update', group = '@property', action = 'Lazy update', key = 'u' },
+            {
+              icon = ' ',
+              icon_hl = '@variable',
+              desc = 'Files',
+              group = 'Label',
+              action = 'Telescope find_files',
+              key = 'f',
+            },
+            {
+              desc = ' Apps',
+              group = 'DiagnosticHint',
+              action = 'Telescope app',
+              key = 'a',
+            },
+            {
+              desc = ' dotfiles',
+              group = 'Number',
+              action = 'Telescope dotfiles',
+              key = 'd',
+            },
+          },
+        },
+      }
+    end,
+    dependencies = { {'nvim-tree/nvim-web-devicons'}}
   },
   {'akinsho/toggleterm.nvim', version = "*", config = true}
 })
 
 
-
 vim.notify = require "notify"
- 
-require('dashboard').setup {
-  config = { 
-    header = {   
-      ' ▓███████████████▓   ▒▓██████▓▒ ▒▓████████▓▒▒▓████████▓▒ ▒▓███████▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓███████▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▓███████████████▓   ',
-      '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒    ▒▓█▓▒░       ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
-      '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒    ▒▓█▓▒░       ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
-      '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓████████▓▒   ▒▓█▓▒       ▒▓█▓▒     ▒▓██████▓▒  ▒▓███████▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
-      '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒           ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▓█▓▒   ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
-      '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒           ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▓█▓▒   ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
-      '▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒   ▒▓█▓▒       ▒▓█▓▒    ▒▓███████▓▒  ▒▓█▓▒  ▒▓█▓▒ ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒    ▒▓██▓▒    ▒▓█▓▒ ▒▓█▓▒  ▒▓█▓▒  ▒▓█▓▒  ',
-    }
-  }
-}
-
-
 
 require("trouble").setup {
   position = "bottom", -- position of the list can be: bottom, top, left, right
@@ -234,14 +292,14 @@ require("trouble").setup {
 --                                                                       traslate 
 -- ####################################################################################################################################################################################
 require("translate").setup({
-    default = {
-        command = "google",
+  default = {
+    command = "google",
+  },
+  preset = {
+    output = {
+      replace = "rate",
     },
-    preset = {
-        output = {
-            replace = "rate",
-        },
-    },
+  },
 })
 
 -- ####################################################################################################################################################################################
@@ -249,7 +307,7 @@ require("translate").setup({
 -- ####################################################################################################################################################################################
 local windline = require('windline')
 require('wlsample.airline_luffy')
-    --- you need to define your status lines here
+--- you need to define your status lines here
 
 -- ####################################################################################################################################################################################
 --                                                                        VIMSPECTOR
@@ -319,6 +377,13 @@ vim.g.dashboard_default_executive = 'telescope'
 --                                                                           nerdtree
 -- ####################################################################################################################################################################################
 
+vim.g.mkdp_echo_preview_url = 1;
+vim.g.mkdp_auto_start = 1;
+local OpenMarkdownPreview = function(url)
+  print(url)
+  vim.cmd [["silent ! firefox --new-window " . a:url]]
+end
+vim.g.mkdp_browserfunc = 'OpenMarkdownPreview'
 vim.g.loaded = 1
 vim.g.loaded_netrwPlugin = 1
 require("nvim-tree").setup()
@@ -330,7 +395,6 @@ require("nvim-tree").setup()
 local cmp = require 'cmp'
 -- local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
 
---vim.opt.completeopt = {'menu', 'menuone', 'noselect'}
 local has_words_before = function()
   local line, col = unpack(vim.api.nvim_win_get_cursor(0))
   return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
@@ -378,40 +442,40 @@ cmp.setup {
     ['<CR>'] = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false }),
 
   }),
-     sources = cmp.config.sources({
-         { name = 'nvim_lsp' },
-         { name = 'snippy' },
-         { name = 'omni' },
-         { name = 'orgmode' },
+  sources = cmp.config.sources({
+    { name = 'nvim_lsp' },
+    { name = 'snippy' },
+    { name = 'omni' },
+    { name = 'orgmode' },
 
-         },{{ name = 'path' }}-- For ultisnips users.
-       )
+  },{{ name = 'path' }}-- For ultisnips users.
+  )
 }
 
 cmp.setup.filetype('gitcommit', {
- sources = cmp.config.sources({
-   { name = 'git' }, -- You can specify the `git` source if [you were installed it](https://github.com/petertriho/cmp-git).
- }, {
-     { name = 'buffer' },
-   })
+  sources = cmp.config.sources({
+    { name = 'git' }, -- You can specify the `git` source if [you were installed it](https://github.com/petertriho/cmp-git).
+  }, {
+      { name = 'buffer' },
+    })
 })
 
 -- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
 cmp.setup.cmdline({ '/', '?' }, {
- mapping = cmp.mapping.preset.cmdline(),
- sources = {
-   { name = 'buffer' }
- }
+  mapping = cmp.mapping.preset.cmdline(),
+  sources = {
+    { name = 'buffer' }
+  }
 })
 
 -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
 cmp.setup.cmdline(':', {
- mapping = cmp.mapping.preset.cmdline(),
- sources = cmp.config.sources({
-   { name = 'path' }
- }, {
-     { name = 'cmdline' }
-   })
+  mapping = cmp.mapping.preset.cmdline(),
+  sources = cmp.config.sources({
+    { name = 'path' }
+  }, {
+      { name = 'cmdline' }
+    })
 })
 
 
@@ -424,7 +488,7 @@ local capabilities = require('cmp_nvim_lsp').default_capabilities()
 local npairs = require('nvim-autopairs')
 
 npairs.setup({
-    check_ts = true,
+  check_ts = true,
 })
 
 
@@ -453,6 +517,8 @@ vim.o.smartcase = true
 
 --Set colorscheme (order is important here)
 vim.o.termguicolors = true
+vim.g.term=kitty
+
 vim.g.onedark_terminal_italics = 2
 vim.cmd [[colorscheme gruvbox]]
 -- ####################################################################################################################################################################################
@@ -537,21 +603,21 @@ require('nvim-treesitter.configs').setup {
   highlight = {
     enable = true, -- false will disable the whole extension
     disable = function(lang, bufnr) -- Disable in large C++ buffers
-        return vim.api.nvim_buf_line_count(bufnr) > 5000
+      return vim.api.nvim_buf_line_count(bufnr) > 5000
     end,
   },
   indent = {
     enable = true,
     disable = function(lang, bufnr) -- Disable in large C++ buffers
-        return vim.api.nvim_buf_line_count(bufnr) > 5000
+      return vim.api.nvim_buf_line_count(bufnr) > 5000
     end,
   },
   incremental_selection = {
     enable = true,
     disable = function(lang, bufnr) -- Disable in large C++ buffers
-        return vim.api.nvim_buf_line_count(bufnr) > 5000
+      return vim.api.nvim_buf_line_count(bufnr) > 5000
     end,
-  
+
     autotag = {
       enable = true,
     },
@@ -647,24 +713,34 @@ vim.cmd [[autocmd! ColorScheme * highlight NormalFloat guibg=#1f2335]]
 vim.cmd [[autocmd! ColorScheme * highlight FloatBorder guifg=white guibg=#1f2335]]
 
 local border = {
-      {"🭽", "FloatBorder"},
-      {"▔", "FloatBorder"},
-      {"🭾", "FloatBorder"},
-      {"▕", "FloatBorder"},
-      {"🭿", "FloatBorder"},
-      {"▁", "FloatBorder"},
-      {"🭼", "FloatBorder"},
-      {"▏", "FloatBorder"},
+  {"🭽", "FloatBorder"},
+  {"▔", "FloatBorder"},
+  {"🭾", "FloatBorder"},
+  {"▕", "FloatBorder"},
+  {"🭿", "FloatBorder"},
+  {"▁", "FloatBorder"},
+  {"🭼", "FloatBorder"},
+  {"▏", "FloatBorder"},
 }
 
 -- LSP settings (for overriding per client)
-local handlers =  {
-  ["textDocument/hover"] =  vim.lsp.with(vim.lsp.handlers.hover, {border = border}),
-  ["textDocument/signatureHelp"] =  vim.lsp.with(vim.lsp.handlers.signature_help, {border = border }),
+local handlers =  { ["textDocument/hover"] =
+  vim.lsp.with(vim.lsp.handlers.hover, {border = border}),
+  ["textDocument/signatureHelp"] =
+    vim.lsp.with(vim.lsp.handlers.signature_help, {border = border }), }
+
+vim.diagnostic.config({
+  virtual_text = false,
+})
+local lspconfig = require('lspconfig') 
+local servers = {
+  'rust_analyzer',
+  'dockerls', 'yamlls',
+  'html', 'terraform_lsp', 'denols',
+  'kotlin_language_server', 'pyright', 
+  'ts_ls'
 }
 
-local lspconfig = require('lspconfig')
-local servers = {'rust_analyzer',  'dockerls', 'yamlls', 'html',  'terraform_lsp', 'denols', 'kotlin_language_server', 'pyright', 'vuels', 'ts_ls' }
 
 local function buffer_augroup(group, bufnr, cmds)
   vim.api.nvim_create_augroup(group, { clear = false })
@@ -677,15 +753,11 @@ local function buffer_augroup(group, bufnr, cmds)
 end
 
 
-vim.api.nvim_set_keymap('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer
 local on_attach = function(client, bufnr)
   -- Enable completion triggered by <c-x><c-o>
   vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
-
-  -- Mappings.
-  -- See `:help vim.lsp.*` for documentation on any of the below functions
   vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
@@ -715,12 +787,21 @@ for _, lsp in pairs(servers) do
   }
 end
 
+lspconfig.rust_analyzer.setup({
+  on_attach = function(client, bufnr)
+    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+  end
+})
 
 lspconfig.pylsp.setup{
   settings = {
     pylsp = {
+      configurationSources = "flake8",
       plugins = {
         rope_autoimport = {
+          enabled = true
+        },
+        flake8 = {
           enabled = true
         }
       }
@@ -729,18 +810,25 @@ lspconfig.pylsp.setup{
   on_attach=on_attach,
   capabilities=capabilities,
 }
-require'lspconfig'.volar.setup{
 
-  --init_options = {
-  --  typescript = {
-  --    --tsdk = '/path/to/.npm/lib/node_modules/typescript/lib'
-  --    -- Alternative location if installed as root:
-  --    tsdk = '/usr/lib/node_modules/typescript/lib'
-  --  }
-  --},
-  filetypes = {'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue', 'json'},
-  capabilities=capabilities,
-  on_attach=on_attach
+lspconfig.ts_ls.setup {
+  init_options = {
+    plugins = {
+      {
+        name = '@vue/typescript-plugin',
+        location = '/path/to/@vue/language-server',
+        languages = { 'vue' },
+      },
+    },
+  },
+}
+
+lspconfig.volar.setup {
+  init_options = {
+    vue = {
+      hybridMode = false,
+    },
+  },
 }
 
 
@@ -764,18 +852,7 @@ lspconfig.jdtls.setup{
   filetypes = {'java'},
 }
 
-require("flutter-tools").setup{
-  lsp = {
-    on_attach = on_attach,
-    capabilities = capabilities,
-    settings = {
-      showTodos = true,
-      completeFunctionCalls = true,
-      enableSnippets = true,
-      updateImportsOnRename = true, -- Whether to update imports and other directives when files are renamed. Required for `FlutterRename` command.
-    }
-  }-- e.g. lsp_status capabilities
-}
+
 
 vim.g.markdown_fenced_languages = {
   "ts=typescript"
@@ -791,6 +868,7 @@ end
 -- You will likely want to reduce updatetime which affects CursorHold
 -- note: this setting is global and should be set only once
 vim.cmd [[autocmd! CursorHold,CursorHoldI * lua vim.diagnostic.open_float()]]
+vim.o.updatetime=1000
 
 
 
@@ -798,11 +876,18 @@ vim.cmd [[autocmd! CursorHold,CursorHoldI * lua vim.diagnostic.open_float()]]
 -- ####################################################################################################################################################################################
 --                                                                           FLUTTER
 -- ####################################################################################################################################################################################
-
-
--- ####################################################################################################################################################################################
---                                                                           Prettier
--- ####################################################################################################################################################################################
+require("flutter-tools").setup{
+  lsp = {
+    on_attach = on_attach,
+    capabilities = capabilities,
+    settings = {
+      showTodos = true,
+      completeFunctionCalls = true,
+      enableSnippets = true,
+      updateImportsOnRename = true, -- Whether to update imports and other directives when files are renamed. Required for `FlutterRename` command.
+    }
+  }-- e.g. lsp_status capabilities
+}
 
 -- ####################################################################################################################################################################################
 --                                                                           bufferline
@@ -836,13 +921,13 @@ require("bufferline").setup{
       return s
     end,
     custom_filter = function(buf_number)
-        if string.match(vim.fn.bufname(buf_number), "fish") or
-           string.match(vim.fn.bufname(buf_number), "git") or
-           string.match(vim.fn.bufname(buf_number), "Merginal") then
-          return false
-        else
-          return true
-        end
+      if string.match(vim.fn.bufname(buf_number), "fish") or
+        string.match(vim.fn.bufname(buf_number), "git") or
+        string.match(vim.fn.bufname(buf_number), "Merginal") then
+        return false
+      else
+        return true
+      end
     end,
   }
 }
