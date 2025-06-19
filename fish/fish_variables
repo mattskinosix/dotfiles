@@ -8,7 +8,7 @@ SETUVAR --export KEYCLOAK_HOST:localhost
 SETUVAR --export KEYCLOAK_PORT:20000
 SETUVAR --export SKAFFOLD_BUILD_CONCURRENCY:8
 SETUVAR --export SKAFFOLD_KUBE_CONTEXT:kind\x2dkind
-SETUVAR __fish_initialized:3400
+SETUVAR __fish_initialized:3800
 SETUVAR __kube_ps_enabled:1
 SETUVAR _fisher_evanlucas_2F_fish_2D_kubectl_2D_completions_files:/home/matteo/\x2econfig/fish/completions/kubectl\x2efish
 SETUVAR _fisher_jorgebucaran_2F_fisher_files:/home/matteo/\x2econfig/fish/functions/fisher\x2efish\x1e/home/matteo/\x2econfig/fish/completions/fisher\x2efish
@@ -31,7 +31,7 @@ SETUVAR fish_color_operator:00a6b2
 SETUVAR fish_color_param:00afff
 SETUVAR fish_color_quote:999900
 SETUVAR fish_color_redirection:00afff
-SETUVAR fish_color_search_match:bryellow\x1e\x2d\x2dbackground\x3dbrblack
+SETUVAR fish_color_search_match:white\x1e\x2d\x2dbackground\x3dbrblack
 SETUVAR fish_color_selection:white\x1e\x2d\x2dbold\x1e\x2d\x2dbackground\x3dbrblack
 SETUVAR fish_color_status:red
 SETUVAR fish_color_user:brgreen
@@ -44,5 +44,3 @@ SETUVAR fish_pager_color_progress:brwhite\x1e\x2d\x2dbackground\x3dcyan
 SETUVAR fish_pager_color_selected_background:\x2dr
 SETUVAR fish_user_paths:/home/matteo/\x2elocal/bin\x1e/opt/brew/opt/quarkus/bin
 SETUVAR nvm_data:/home/matteo/\x2elocal/share/nvm
-SETUVAR nvm_default_version:v14\x2e19\x2e2
-SETUVAR nvm_mirror:https\x3a//nodejs\x2eorg/dist
