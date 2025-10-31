@@ -793,19 +793,19 @@ local on_attach = function(client, bufnr)
 end
 
 for _, lsp in pairs(servers) do
-  lspconfig[lsp].setup {
+  vim.lsp.enable(lsp, {
     on_attach = on_attach,
     capabilities=capabilities,
-  }
+  })
 end
 
-lspconfig.rust_analyzer.setup({
+vim.lsp.enable('rust_analyzer', {
   on_attach = function(client, bufnr)
     vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
   end
 })
 
-lspconfig.pylsp.setup{
+vim.lsp.enable('pylsp', {
   settings = {
     pylsp = {
       configurationSources = "flake8",
@@ -821,9 +821,9 @@ lspconfig.pylsp.setup{
   },
   on_attach=on_attach,
   capabilities=capabilities,
-}
+})
 
-lspconfig.ts_ls.setup {
+vim.lsp.enable('ts_ls', {
   init_options = {
     plugins = {
       {
@@ -833,18 +833,18 @@ lspconfig.ts_ls.setup {
       },
     },
   },
-}
+})
 
-lspconfig.volar.setup {
+vim.lsp.enable('volar', {
   init_options = {
     vue = {
       hybridMode = false,
     },
   },
-}
+})
 
 
-lspconfig.jdtls.setup{
+vim.lsp.enable('jdtls', {
   cmd = {
     "/home/matteo/.local/opt/jdtls-launcher/jdtls/bin/jdtls",
     "-configuration", "/home/matteo/.local/opt/jdtls-launcher/jdtls/config_linux",
@@ -862,7 +862,8 @@ lspconfig.jdtls.setup{
   on_attach=on_attach,
   capabilities=capabilities,
   filetypes = {'java'},
-}
+  }
+)
 
 
 
