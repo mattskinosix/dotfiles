@@ -1,1 +1,0 @@
-yay -S git glab k9s kubectl docker k3d neovim
