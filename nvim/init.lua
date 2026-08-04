@@ -13,6 +13,8 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
+  { "rcarriga/nvim-dap-ui", dependencies = {"mfussenegger/nvim-dap", "nvim-neotest/nvim-nio"} },
+
   {
     "epwalsh/obsidian.nvim",
     version = "*",  -- recommended, use latest release instead of latest commit
@@ -71,7 +73,8 @@ require("lazy").setup({
 
     end,
   },
-  {'mg979/vim-visual-multi' },  
+  { 'brenoprata10/nvim-highlight-colors' },
+  { 'mg979/vim-visual-multi' },  
   { 'uga-rosa/translate.nvim' },
   { 'knubie/vim-kitty-navigator' },
   { 'mfussenegger/nvim-dap' },
@@ -166,24 +169,12 @@ require("lazy").setup({
   },
   {
     "nvim-treesitter/nvim-treesitter",
-
-    build = ":TSUpdate",
-    config = function () 
-      local configs = require("nvim-treesitter.configs")
-
-      configs.setup({
-        ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "elixir", "heex", "javascript", "html" },
-        sync_install = false,
-        highlight = { enable = true },
-        indent = { enable = true },  
-      })
-    end
   },
-  'neovim/nvim-lspconfig', -- Collection of configurations for built-in LSP client
-  'windwp/nvim-autopairs',
-  'tpope/vim-dadbod',
-  'kristijanhusak/vim-dadbod-ui',
-  'kristijanhusak/vim-dadbod-completion',
+  { 'neovim/nvim-lspconfig'}, -- Collection of configurations for built-in LSP client
+  { 'windwp/nvim-autopairs'},
+  { 'tpope/vim-dadbod' },
+  { 'kristijanhusak/vim-dadbod-ui'}, 
+  { 'kristijanhusak/vim-dadbod-completion'},
   -- using packer.nvim
   {'akinsho/bufferline.nvim', version = "*", dependencies = 'kyazdani42/nvim-web-devicons'},
   'prettier/vim-prettier',
@@ -251,7 +242,7 @@ require("lazy").setup({
 
 
 vim.notify = require "notify"
-
+require('nvim-highlight-colors').setup({})
 require("trouble").setup {
   position = "bottom", -- position of the list can be: bottom, top, left, right
   height = 10, -- height of the trouble list when position is top or bottom
@@ -362,6 +353,32 @@ dap.configurations.python = {
   },
 }
 
+
+dap.adapters.node2 = {
+  type = 'executable',
+  command = 'node',
+  args = {os.getenv('HOME') .. '/dev/microsoft/vscode-node-debug2/out/src/nodeDebug.js'},
+}
+dap.configurations.javascript = {
+  {
+    name = 'Launch',
+    type = 'node2',
+    request = 'launch',
+    program = '${file}',
+    cwd = vim.fn.getcwd(),
+    sourceMaps = true,
+    protocol = 'inspector',
+    console = 'integratedTerminal',
+  },
+  {
+    -- For this to work you need to make sure the node process is started with the `--inspect` flag.
+    name = 'Attach to process',
+    type = 'node2',
+    request = 'attach',
+    processId = require'dap.utils'.pick_process,
+  },
+}
+
 -- ####################################################################################################################################################################################
 --                                                                        BLANKLINE
 -- ####################################################################################################################################################################################
@@ -454,6 +471,9 @@ cmp.setup {
     ['<CR>'] = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false }),
 
   }),
+  formatting = {
+    format = require("nvim-highlight-colors").format
+  },
   sources = cmp.config.sources({
     { name = 'nvim_lsp' },
     { name = 'snippy' },
@@ -748,7 +768,7 @@ local lspconfig = require('lspconfig')
 local servers = {
   'rust_analyzer',
   'dockerls', 'yamlls',
-  'html', 'terraform_lsp', 'denols',
+  'html', 'terraform_lsp', 
   'kotlin_language_server', 'pyright', 
   'ts_ls'
 }
@@ -793,19 +813,25 @@ local on_attach = function(client, bufnr)
 end
 
 for _, lsp in pairs(servers) do
-  vim.lsp.enable(lsp, {
+  lspconfig[lsp].setup {
     on_attach = on_attach,
     capabilities=capabilities,
-  })
+  }
 end
 
-vim.lsp.enable('rust_analyzer', {
+lspconfig.rust_analyzer.setup({
   on_attach = function(client, bufnr)
     vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
   end
 })
 
-vim.lsp.enable('pylsp', {
+lspconfig.denols.setup({
+  root_dir = require("lspconfig").util.root_pattern({"deno.json", "deno.jsonc"}),
+  on_attach = on_attach,
+  capabilities=capabilities,
+})
+
+lspconfig.pylsp.setup{
   settings = {
     pylsp = {
       configurationSources = "flake8",
@@ -821,9 +847,11 @@ vim.lsp.enable('pylsp', {
   },
   on_attach=on_attach,
   capabilities=capabilities,
-})
+}
 
-vim.lsp.enable('ts_ls', {
+lspconfig.ts_ls.setup {
+  on_attach=on_attach,
+  capabilities=capabilities,
   init_options = {
     plugins = {
       {
@@ -833,18 +861,20 @@ vim.lsp.enable('ts_ls', {
       },
     },
   },
-})
+}
 
-vim.lsp.enable('volar', {
+lspconfig.volar.setup {
+  on_attach=on_attach,
+  capabilities=capabilities,
   init_options = {
     vue = {
       hybridMode = false,
     },
   },
-})
+}
 
 
-vim.lsp.enable('jdtls', {
+lspconfig.jdtls.setup{
   cmd = {
     "/home/matteo/.local/opt/jdtls-launcher/jdtls/bin/jdtls",
     "-configuration", "/home/matteo/.local/opt/jdtls-launcher/jdtls/config_linux",
@@ -862,8 +892,7 @@ vim.lsp.enable('jdtls', {
   on_attach=on_attach,
   capabilities=capabilities,
   filetypes = {'java'},
-  }
-)
+}
 
 
 
@@ -881,7 +910,6 @@ end
 -- You will likely want to reduce updatetime which affects CursorHold
 -- note: this setting is global and should be set only once
 vim.cmd [[autocmd! CursorHold,CursorHoldI * lua vim.diagnostic.open_float()]]
-vim.o.updatetime=1000
 
 
 
@@ -1004,5 +1032,4 @@ function _G.set_terminal_keymaps()
   local opts = {noremap = true}
   vim.api.nvim_buf_set_keymap(0, 't', '<leader><esc>', [[<C-\><C-n>]], opts)
 end
-
 vim.cmd('autocmd! TermOpen term://* lua set_terminal_keymaps()')
